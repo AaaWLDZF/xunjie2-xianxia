@@ -584,6 +584,22 @@
         .btn-copy:hover { background: #75654a; }
         .tut-faq { margin: 4px 0 0; padding-left: 18px; color: #4a4234; }
         .tut-faq b { color: #a12b2b; }
+        /* 起始设置页 */
+        .setup-mask { display: none; position: fixed; inset: 0; background: rgba(20,16,10,0.72); z-index: 1000; justify-content: center; align-items: flex-start; padding: 24px 16px; overflow-y: auto; }
+        .setup-box { background: #f2efe6; border: 1px solid #b8aa8c; border-radius: 20px; box-shadow: 0 30px 70px rgba(0,0,0,0.6); width: min(620px, 100%); padding: 22px 26px 26px; margin: 24px auto; }
+        .setup-box h2 { font-size: 1.4rem; letter-spacing: 4px; color: #3f3a2e; border-bottom: 3px double #a89b80; padding-bottom: 10px; margin-bottom: 14px; text-align: center; }
+        .setup-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .setup-row > label:first-child { width: 104px; flex-shrink: 0; color: #5e5342; font-weight: 600; font-size: 0.92rem; }
+        .setup-row input[type="text"] { flex: 1; min-width: 180px; padding: 8px 14px; border-radius: 20px; border: 1px solid #b7a98e; background: #faf7f0; font-family: inherit; font-size: 0.95rem; outline: none; }
+        .su-radio, .su-checks label { display: inline-flex; align-items: center; gap: 5px; background: #e3dbcc; border: 1px solid #b3a283; border-radius: 20px; padding: 5px 12px; font-size: 0.86rem; color: #4a4234; cursor: pointer; margin: 3px 4px 3px 0; }
+        .su-checks label { background: #eee7d8; }
+        .su-checks label.on { background: #cfd9c4; border-color: #7f8b6b; }
+        .su-checks input[type="checkbox"] { accent-color: #5e5342; }
+        .su-custom input[type="text"] { padding: 5px 10px; border-radius: 14px; border: 1px solid #b7a98e; background: #faf7f0; font-family: inherit; font-size: 0.84rem; outline: none; width: 150px; }
+        .su-custom .su-cc { accent-color: #5e5342; }
+        .su-start { display: block; width: 100%; background: #8b7a5c; color: #f5f0e6; border: none; border-radius: 30px; padding: 12px 0; font-family: inherit; font-size: 1.05rem; letter-spacing: 6px; cursor: pointer; margin-top: 10px; font-weight: 600; }
+        .su-start:hover { background: #75654a; }
+        .su-note { margin-top: 10px; font-size: 0.76rem; color: #7a6e5a; line-height: 1.7; }
         .toast {
             position: fixed;
             left: 50%;
@@ -680,7 +696,7 @@
                         <div class="ai-test-result" id="aiTestResult"></div>
                         <div class="ai-cost">💰 每轮费用参考（DeepSeek 官方价）：每轮对话约消耗 <b>4~5K tokens</b>（系统提示约2K＋剧情上下文约1.5K＋回复约1K）。<b>deepseek-v4-pro</b> 约合 <b>¥0.01~0.05 / 轮</b>（闲时更低；剧情越长上下文越大）；<b>deepseek-flash</b> 约为前者的 1/4~1/5，即 <b>¥0.003~0.01 / 轮</b>。10 元余额通常可支撑 2000~8000 轮对话，实际以平台账单为准。</div>
                     </div>
-                    <div class="ai-strict-label">⚖️ 沈砚严厉程度（选定后，后续剧情立即按此基调推进）：</div>
+                    <div class="ai-strict-label">⚖️ <span id="suStrictName">沈砚</span>严厉程度（选定后，后续剧情立即按此基调推进）：</div>
                     <div class="ai-strict-pills" id="aiStrictPills">
                         <button class="ai-pill" data-lv="1">① 温润宽和</button>
                         <button class="ai-pill" data-lv="2">② 标准师门</button>
@@ -694,12 +710,12 @@
 
             <!-- 训诫者信息 -->
             <div class="panel-card">
-                <h3>🧑‍⚖️ 训诫者 · 沈砚</h3>
+                <h3>🧑‍⚖️ 训诫者 · <span id="suDiscName">沈砚</span></h3>
                 <div class="char-sheet">
-                    <div class="char-row"><span class="char-label">姓名</span><span class="char-text">沈砚</span></div>
-                    <div class="char-row"><span class="char-label">身份</span><span class="char-text">戒律堂首座 · 大师兄</span></div>
+                    <div class="char-row"><span class="char-label">姓名</span><span class="char-text" id="suDiscRowName">沈砚</span></div>
+                    <div class="char-row"><span class="char-label">身份</span><span class="char-text" id="suDiscRowRole">戒律堂首座 · 大师兄</span></div>
                     <div class="char-row"><span class="char-label">性格</span><span class="char-text">温润如玉 · 底线分明</span><span class="badge">保守底线</span></div>
-                    <div class="char-row"><span class="char-label">外貌</span><span class="char-text">清瘦挺拔 · 常着月白道袍</span></div>
+                    <div class="char-row"><span class="char-label">外貌</span><span class="char-text" id="suDiscLook">清瘦挺拔 · 常着月白道袍</span></div>
                     <div class="char-row"><span class="char-label">状态</span><span class="char-text" id="shenState">静水深流 · 不可测</span></div>
                 </div>
                 <div class="contract-highlight" id="contract">📜 当前契约条款：每日晨昏定省；禁止私自进入药圃；违规需主动上报。</div>
@@ -707,9 +723,9 @@
 
             <!-- 玩家信息 -->
             <div class="panel-card">
-                <h3>🌿 主控 · 若木</h3>
+                <h3>🌿 主控 · <span id="suPlayerName">若木</span></h3>
                 <div class="char-sheet">
-                    <div class="char-row"><span class="char-label">身份</span><span class="char-text">小师弟 · 戒律堂编外弟子</span></div>
+                    <div class="char-row"><span class="char-label">身份</span><span class="char-text" id="suPlayerRole">小师弟 · 戒律堂编外弟子</span></div>
                     <div class="char-row"><span class="char-label">性格</span><span class="char-text">跳脱 · 好奇心重</span></div>
                     <div class="char-row"><span class="char-label">隐藏动机</span><span class="char-text" id="motive">真心服从（暂定）</span></div>
                     <div class="char-row"><span class="char-label">过错记录</span><span class="char-text" id="violMemo">暂无</span></div>
@@ -718,22 +734,14 @@
 
             <!-- 规则简表 -->
             <div class="panel-card">
-                <h3>📋 明规则 · 标准档</h3>
-                <div class="info-row"><span class="info-label">晨省时间</span><span class="info-value">卯时末·辰时初</span></div>
+                <h3>📋 明规则 · <span id="suRuleName">标准档</span></h3>
+                <div class="info-row"><span class="info-label">作息时间</span><span class="info-value" id="suRuleTime">卯时末·辰时初</span></div>
                 <div class="info-row"><span class="info-label">违规判定</span><span class="info-value">正常·首次警告</span></div>
-                <div class="info-row"><span class="info-label">严苛度</span><span class="info-value">标准（6-10条）</span></div>
+                <div class="info-row"><span class="info-label">严苛度</span><span class="info-value" id="suRuleStrict">标准（6-10条）</span></div>
                 <div class="info-row"><span class="info-label">连坐累积</span><span class="info-value">同类违规加倍</span></div>
                 <hr>
-                <div class="info-row"><span class="info-label">世界种子</span><span class="info-value">XY-2025-若木-03</span></div>
-                <div class="info-row"><span class="info-label">游戏难度</span><span class="info-value">中等 · 真实难度</span></div>
-            </div>
-
-            <!-- 特权与监察 -->
-            <div class="panel-card">
-                <h3>🕵️ 监视网络</h3>
-                <div class="info-row"><span class="info-label">AI管家</span><span class="info-value">记录出入·已记录</span></div>
-                <div class="info-row"><span class="info-label">眼线NPC</span><span class="info-value" id="w-eye">外门弟子·阿巳</span></div>
-                <div class="info-row"><span class="info-label">下次汇报</span><span class="info-value" id="w-report">午时·需主动</span></div>
+                <div class="info-row"><span class="info-label">世界种子</span><span class="info-value" id="suSeed">XY-2025-若木-03</span></div>
+                <div class="info-row"><span class="info-label">游戏难度</span><span class="info-value" id="suDiffLabel">标准 · 真实难度</span></div>
             </div>
         </div>
     </div>
@@ -741,6 +749,45 @@
     <!-- 底部提示 -->
     <div class="footer-note">
         训戒模拟器2.0 · 单机网页版 · AI 可接入 · 本地引擎保底 · 所有情节均为虚构 · 输入“中止”可安全跳过场景
+    </div>
+</div>
+
+<!-- 起始设置页 -->
+<div class="setup-mask" id="setupMask">
+    <div class="setup-box">
+        <h2>⚙️ 开局设定</h2>
+        <div class="setup-row"><label>主控名字</label><input type="text" id="suPlayer" value="若木" maxlength="12"></div>
+        <div class="setup-row"><label>训诫者名字</label><input type="text" id="suDisc" value="沈砚" maxlength="12"></div>
+        <div class="setup-row"><label>时代背景</label>
+            <label class="su-radio"><input type="radio" name="suEra" value="ancient" checked> 古代 · 仙侠宗门</label>
+            <label class="su-radio"><input type="radio" name="suEra" value="modern"> 现代 · 训导制度</label>
+        </div>
+        <div class="setup-row"><label>游戏难度</label>
+            <label class="su-radio"><input type="radio" name="suDiff" value="1"> 温和</label>
+            <label class="su-radio"><input type="radio" name="suDiff" value="2" checked> 标准</label>
+            <label class="su-radio"><input type="radio" name="suDiff" value="3"> 严酷</label>
+        </div>
+        <div class="setup-row" style="align-items:flex-start;"><label style="padding-top:6px;">可用罚则<br><span style="font-weight:400;font-size:0.72rem;">（勾选生效，不设上限）</span></label>
+            <div style="flex:1;">
+                <div class="su-checks" id="suPreset">
+                    <label><input type="checkbox" data-p="戒尺" checked> 戒尺</label>
+                    <label><input type="checkbox" data-p="罚抄" checked> 罚抄（抄书）</label>
+                    <label><input type="checkbox" data-p="罚跪" checked> 罚跪</label>
+                    <label><input type="checkbox" data-p="罚站" checked> 罚站</label>
+                    <label><input type="checkbox" data-p="禁足" checked> 禁足</label>
+                    <label><input type="checkbox" data-p="汇报" checked> 汇报</label>
+                </div>
+                <div class="su-checks su-custom" id="suCustom" style="margin-top:6px;">
+                    <label><input type="checkbox" class="su-cc"><input type="text" class="su-ct" maxlength="12" placeholder="自定义罚则 1"></label>
+                    <label><input type="checkbox" class="su-cc"><input type="text" class="su-ct" maxlength="12" placeholder="自定义罚则 2"></label>
+                    <label><input type="checkbox" class="su-cc"><input type="text" class="su-ct" maxlength="12" placeholder="自定义罚则 3"></label>
+                    <label><input type="checkbox" class="su-cc"><input type="text" class="su-ct" maxlength="12" placeholder="自定义罚则 4"></label>
+                    <label><input type="checkbox" class="su-cc"><input type="text" class="su-ct" maxlength="12" placeholder="自定义罚则 5"></label>
+                </div>
+            </div>
+        </div>
+        <button id="suStart" class="su-start">▶ 开 始 游 戏</button>
+        <div class="su-note">主控与训诫者名字、时代、难度与罚则清单将即时作用于全部剧情（AI 与本地引擎同步生效）；未被勾选的罚则绝不在后续剧情中出现。一个罚则都不勾时，剧情将以训话、批评与记录为主。重开游戏会回到本页，可随时调整。</div>
     </div>
 </div>
 
@@ -797,8 +844,14 @@ function DEF() {
         favor: 12, trust: 28, violation: 6, privilege: 85,
         discipline: 45, emotion: 18, obedience: 22, resistance: 8,
         actions: 0, scene: 's1', ended: false, aiArc: false,
-        flags: {}, memory: { viol: {}, loc: {} }, aiChoices: []
+        flags: {}, memory: { viol: {}, loc: {} }, aiChoices: [],
+        setup: null
     };
+}
+var PRESET_PUNISH = ['戒尺', '罚抄', '罚跪', '罚站', '禁足', '汇报'];
+function defaultSetup() {
+    return { player: '若木', discipliner: '沈砚', era: 'ancient', difficulty: 2,
+        punish: PRESET_PUNISH.slice(), custom: ['', '', '', '', ''] };
 }
 var S = DEF();
 
@@ -818,10 +871,41 @@ function el(cls, html) {
     story.scrollTop = story.scrollHeight;
     return e;
 }
-function hd(t) { var e = document.createElement('p'); e.className = 'scene-head'; e.innerHTML = t; story.appendChild(e); story.scrollTop = story.scrollHeight; }
-function line(t) { var e = document.createElement('p'); e.innerHTML = t; story.appendChild(e); story.scrollTop = story.scrollHeight; }
-function say(name, t) { el('dialogue', '<strong>' + name + '：</strong>“' + t + '”'); }
-function n(t) { el('narration', '【旁白】' + t); }
+function hd(t) { var e = document.createElement('p'); e.className = 'scene-head'; e.innerHTML = rp(t); story.appendChild(e); story.scrollTop = story.scrollHeight; }
+/* ---------- 起始设定生效层：人名 / 时代 / 罚则过滤 ---------- */
+var ERA_MAP = { '大师兄': '督导老师', '戒律堂': '训导处', '静室': '训导室', '藏书阁': '图书馆', '宗门': '学院', '掌门': '校长', '师门': '学院', '道袍': '正装衬衫', '弟子': '学生', '晨省': '晨会', '律令': '校规条文' };
+var ERA_TIME = { '子时': '23:00', '丑时': '01:00', '寅时': '04:00', '卯时': '06:00', '辰时': '08:00', '巳时': '10:00', '午时': '12:00', '未时': '14:00', '申时': '16:00', '酉时': '18:00', '戌时': '20:00', '亥时': '22:00' };
+var PUNISH_SUBS = { '戒尺': '训诫', '罚抄': '写检讨', '抄书': '写检讨', '罚跪': '站立听训', '跪省': '站立反省', '罚站': '站立听训', '禁足': '口头警告', '汇报': '约谈' };
+function dName() { return (S.setup && S.setup.discipliner) || '沈砚'; }
+function pName() { return (S.setup && S.setup.player) || '若木'; }
+function eraMap(t) {
+    for (var k in ERA_MAP) t = t.split(k).join(ERA_MAP[k]);
+    for (var w in ERA_TIME) t = t.split(w).join(ERA_TIME[w]);
+    return t;
+}
+function punishFilter(t) {
+    var list = (S.setup && S.setup.punish) || [];
+    function has(k) {
+        if (list.indexOf(k) >= 0) return true;
+        if (k === '跪省' && list.indexOf('罚跪') >= 0) return true;
+        if (k === '抄书' && list.indexOf('罚抄') >= 0) return true;
+        return false;
+    }
+    for (var k in PUNISH_SUBS) {
+        if (!has(k)) t = t.split(k).join(PUNISH_SUBS[k]);
+    }
+    return t;
+}
+/* 统一出口替换：本地剧本与 AI 输出的人名、时代名词、未勾选罚则在此生效 */
+function rp(t) {
+    t = String(t).split('沈砚').join(dName()).split('若木').join(pName());
+    if (S.setup && S.setup.era === 'modern') t = eraMap(t);
+    t = punishFilter(t);
+    return t;
+}
+function line(t) { var e = document.createElement('p'); e.innerHTML = rp(t); story.appendChild(e); story.scrollTop = story.scrollHeight; }
+function say(name, t) { el('dialogue', '<strong>' + rp(name) + '：</strong>“' + rp(t) + '”'); }
+function n(t) { el('narration', '【旁白】' + rp(t)); }
 function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -850,13 +934,23 @@ function floater(k, d) {
     e.parentElement.appendChild(f);
     setTimeout(function () { f.remove(); }, 1200);
 }
+var BAD_KEYS = { violation: 1, resistance: 1, discipline: 1 };
+function diffMul(k) {
+    var d = (S.setup && S.setup.difficulty) || 2;
+    if (d === 3) return BAD_KEYS[k] ? 1.35 : 0.8;
+    if (d === 1) return BAD_KEYS[k] ? 0.7 : 1.0;
+    return 1;
+}
 function eff(o) {
     for (var k in o) {
         if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
         if (k === 'flags') { Object.assign(S.flags, o[k]); continue; }
         if (!CLAMP[k]) continue;
         var old = S[k];
-        var v = old + o[k];
+        var mv = o[k] * diffMul(k);
+        var r = Math.round(mv);
+        if (r === 0 && o[k] !== 0) r = o[k] > 0 ? 1 : -1;
+        var v = old + r;
         v = Math.max(CLAMP[k][0], Math.min(CLAMP[k][1], v));
         S[k] = v;
         var d = v - old;
@@ -885,12 +979,14 @@ function renderStatus() {
 }
 function renderSide() {
     var f = S.flags;
-    var t = ['每日晨昏定省'];
+    var t = [(S.setup && S.setup.era === 'modern') ? '每日晨会点名' : '每日晨昏定省'];
     if (f.gardenTerm) t.push('戒尺与罚抄之罚按期销账');
     if (f.reported) t.push('午时主动汇报行踪');
     if (f.confined) t.push('禁足三日（除晨省与领罚）');
     if (f.patrol) t.push('每月朔日随巡山一次');
-    document.getElementById('contract').innerHTML = '📜 当前契约条款：' + t.join('；') + '。';
+    var ct = t.join('；');
+    if (S.setup && S.setup.era === 'modern') ct = ct.split('晨省').join('晨会');
+    document.getElementById('contract').innerHTML = '📜 当前契约条款：' + punishFilter(ct) + '。';
     document.getElementById('shenState').textContent =
         f.backstory ? '守灯十二年 · 旧事未愈' : (f.knowWatch ? '昨夜守圃至三更 · 深藏不露' : '静水深流 · 不可测');
     document.getElementById('motive').textContent =
@@ -900,8 +996,6 @@ function renderSide() {
     var memo = [], viol = (S.memory && S.memory.viol) ? S.memory.viol : {};
     Object.keys(viol).forEach(function (k) { memo.push(k + '×' + viol[k]); });
     document.getElementById('violMemo').textContent = memo.length ? memo.join('、') : '暂无';
-    document.getElementById('w-eye').textContent = f.knowWatch ? '外门弟子·阿巳（已心软）' : '外门弟子·阿巳';
-    document.getElementById('w-report').textContent = f.reported ? '午时·已汇报' : '午时·需主动';
 }
 
 /* ---------- 行动渲染与执行 ---------- */
@@ -1742,12 +1836,12 @@ function syncAIUI() {
     var ok = aiUsable();
     var missing = !AI.cfg.endpoint || !AI.cfg.key || !AI.cfg.model;
     document.getElementById('aiStatus').textContent = ok
-        ? ('AI 状态：已连接 · ' + AI.cfg.model + ' · 沈砚：' + STRICT_NAMES[AI.cfg.strict])
+        ? ('AI 状态：已连接 · ' + AI.cfg.model + ' · ' + dName() + '：' + STRICT_NAMES[AI.cfg.strict])
         : (missing ? 'AI 状态：未连接 API · 请填写 API 地址 / Key / 模型后点「保存并连接」'
                    : 'AI 状态：配置已存 · 勾选上方「启用 AI」即可开玩');
     document.getElementById('aiHintState').textContent = ok
         ? ('当前由你连接的 AI（' + AI.cfg.model + '·' + STRICT_NAMES[AI.cfg.strict] + '档）实时响应你的每一次输入。')
-        : '当前由本地剧本引擎响应；连接 API 并启用 AI 后，沈砚将真正听懂你的每一句话。';
+        : '当前由本地剧本引擎响应；连接 API 并启用 AI 后，' + dName() + '将真正听懂你的每一句话。';
 }
 function setStrict(lv) {
     lv = Math.max(1, Math.min(4, parseInt(lv, 10) || 2));
@@ -1775,11 +1869,16 @@ function saveAIToggles() {
 function buildAISystemPrompt(opts) {
     var openArc = opts && opts.openArc;
     var strict = STRICT_BLOCKS[AI.cfg.strict] || STRICT_BLOCKS[2];
-    var base = '你是单机文字游戏《训戒男模拟器2.0·仙侠篇》的剧情引擎，扮演戒律堂首座·大师兄沈砚，并无限推进剧情。' +
-        '【世界观】修仙宗门·戒律堂。玩家扮演跳脱好动、好奇心重的编外弟子若木（男）；沈砚温润如玉、底线分明，对欺瞒与偷盗零容忍。师门罚则体系固定为：戒尺与罚抄律令为两大主罚（二者同等优先、按过错轻重选用或并施），辅以跪省、禁足与午时汇报制度；不使用劳作类惩罚（禁止以洒扫、杂役、耕种等作为惩罚）（健康向，无血腥暴力、无任何亲密越界内容，二人仅为师兄弟情谊）。配角如外门弟子阿巳等可自然登场。' +
-        strict +
-        '【主题约束·必须遵守】全部剧情必须始终围绕“训诫/管教”主题展开：剧情围绕若木的各类过犯（晨省迟到、夜不归舍、私闯禁地、偷懒懈怠、顶撞师长、损毁公物等）与师门规矩、罚则及训导对话展开。罚则只允许使用：戒尺（打手心，打前报数、打后谢训）、罚抄律令——二者同等优先为主罚；跪省（跪于静室反省思过，时长以一炷香或半个时辰计，常与罚抄、戒尺搭配）、禁足、午时汇报为辅。严禁出现劳作类惩罚（洒扫、杂役、耕种、劈柴挑水等一律不得作为惩罚手段）。即使翻篇进入新剧情，也必须由新的过犯、戒律训导或训诫后的成长与考验引出，不得偏离到无关冒险、情爱或争斗。' +
-        '【硬性要求】1) 必须紧扣玩家行动（player_action）做针对性回应，禁止答非所问、禁止无视玩家输入自说自话；2) 与 story_recent 中的既有内容措辞、句式不重复，每次换新细节、新角度，确保多样性；3) 文风古风细腻，沈砚台词温和而有分量，可带一点冷幽默；4) effects 的键只能取：favor,trust,violation,privilege,discipline,emotion,obedience,resistance（禁止自创键名），只填确实发生变动的项，单项范围-12~+12，violation/discipline/resistance为坏值，favor/trust/obedience/emotion为好值，privilege为消耗性资源。' +
+    var su = S.setup || defaultSetup();
+    var diffBlock = (su.difficulty === 3 ? '【难度·严酷】整体基调严厉：惩罚更重、翻旧账更狠，effects 负面波动加大（负面单项可达+12），favor/trust 极难提升。' : su.difficulty === 1 ? '【难度·温和】整体基调宽松：说理为主、惩罚偏轻，effects 涨跌温和（单项绝对值≤8），favor/trust 更易提升。' : '【难度·标准】赏罚分明，按过错轻重正常处置。');
+    var punishBlock = '【生效罚则清单·最高优先级】本局允许出现的惩罚手段仅限：' + ((su.punish && su.punish.length) ? su.punish.join('、') : '（未勾选任何罚则）') + '。所有剧情、台词与处置必须且只能使用清单内的罚则；严禁出现清单之外的任何罚具、体罚或处置方式（清单没有的罚具/手段一次都不许提）；未勾选任何罚则时，只允许口头训诫、批评教育、谈话与记录在案。choices 中涉及领罚的选项也只能指向清单内的罚则。';
+    var worldBlock = su.era === 'modern'
+        ? '【世界观】现代校园·训导制度。玩家扮演跳脱好动、好奇心重的违纪学生' + su.player + '（男）；' + su.discipliner + '是训导处的督导老师，一丝不苟、底线分明，对欺瞒与偷盗零容忍。校园惩戒以训导处公示的惩戒清单为准（见生效罚则清单），不使用侮辱性内容（健康向，无血腥暴力、无任何亲密越界内容，二人为师生管教情谊）。配角如同学、宿管阿姨、纪检学生等可自然登场。'
+        : '【世界观】修仙宗门·戒律堂。玩家扮演跳脱好动、好奇心重的编外弟子' + su.player + '（男）；' + su.discipliner + '温润如玉、底线分明，对欺瞒与偷盗零容忍。师门罚则以生效罚则清单为准，不使用劳作类惩罚（禁止以洒扫、杂役、耕种等作为惩罚）（健康向，无血腥暴力、无任何亲密越界内容，二人仅为师兄弟情谊）。配角如外门弟子阿巳等可自然登场。';
+    var base = '你是单机文字游戏《训戒模拟器2.0》的剧情引擎，扮演训诫者' + su.discipliner + '，并无限推进剧情。' + worldBlock +
+        strict + punishBlock + diffBlock +
+        '【主题约束·必须遵守】全部剧情必须始终围绕“训诫/管教”主题展开：剧情围绕' + su.player + '的各类过犯（迟到、夜不归宿、私闯禁地、偷懒懈怠、顶撞师长、损毁公物、作弊隐瞒等）与门规校纪、罚则及训导对话展开。所有惩罚必须严格按【生效罚则清单】执行，不得使用清单外的任何手段。即使翻篇进入新剧情，也必须由新的过犯、训导或训诫后的成长与考验引出，不得偏离到无关冒险、情爱或争斗。' +
+        '【硬性要求】1) 必须紧扣玩家行动（player_action）做针对性回应，禁止答非所问、禁止无视玩家输入自说自话；2) 与 story_recent 中的既有内容措辞、句式不重复，每次换新细节、新角度，确保多样性；3) 文风' + (su.era === "modern" ? "贴近现代校园、细腻真实" : "古风细腻") + '，' + su.discipliner + '台词温和而有分量，可带一点冷幽默；4) effects 的键只能取：favor,trust,violation,privilege,discipline,emotion,obedience,resistance（禁止自创键名），只填确实发生变动的项，单项范围-12~+12，violation/discipline/resistance为坏值，favor/trust/obedience/emotion为好值，privilege为消耗性资源。' +
         '【过错记忆·必须遵守】payload.past_violations 是若木过往过错的记录（标签:次数）。每次回应必须评估 player_action 是否构成过错：若构成，在输出JSON顶层 violation 字段填1~6字过错标签（如：迟到、顶嘴、夜不归舍、私闯禁地、偷懒、撒谎、损毁公物），标签必须与 past_violations 中同类过错用词一致，便于对账；若同时涉及多项过错，以最主导的一项作标签，不拼长串；不构成则填空字符串""。若该标签已在 past_violations 中出现（次数≥1），即为重复犯错：必须在 narration 或 dialogues 中明确翻旧账（点明这是第N次、提及上次的教训或当时训话的大意），沈砚情绪明显加重（更失望、更严厉或一声更深沉的叹息），effects 中 violation 与 discipline 加大、favor 与 trust 降得更多；翻旧账的严厉程度随沈砚当前性格档位加深。若为初犯则正常按罚则处置；严禁凭空捏造 past_violations 中不存在的旧账，也不许对不构成过错的行为强行记账。' +
         '【场景轮换·必须遵守】payload.past_arcs 是本局已经历过的剧情梗概列表（含历次重开）。任何新剧情（翻篇后的新开场、新事件）在场景地点、过错类型、事件内容上都必须与 past_arcs 中任意一条明显不同，禁止重复同类桥段（如已发生过"晨省迟到"，就不得再以"迟到"作为新剧情核心；同一地点不宜连续两次作为主场景）；next_arc_hint 与 choices 也要体现这种差异。' +
         '【剧情推进·两阶段翻篇】每段剧情不设行动次数上限，节奏由你把握。当本段剧情自然收束时，设 advance=true，本次回应【只负责收束旧剧情】：narration 与 dialogues 要把此事的了结、人物当下的状态交代清楚（narration 不超过2段），绝不在本次回应中展开任何新剧情或新事件；transition 字段写一句过渡语（如：又过了几日 / 此番过后若木难得消停了几日 / 一晃便是三日后）；new_day/new_time/new_location 给出翻篇后的日期时辰与地点；next_arc_hint 用一句话概括新剧情的走向（如：若木领了新的差事 / 又犯新错 / 宗门试炼将至）。系统收到 advance=true 后会另行单独请求新剧情开场——旧剧情到本次回应为止彻底结束，新旧剧情互不影响、互不纠缠。若本段剧情尚未收束，advance 保持 false，不提供 transition/new_*/next_arc_hint 字段。' +
@@ -1793,6 +1892,7 @@ function buildAISystemPrompt(opts) {
     else if (opts && opts.newOpening) {
         base += '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。若木在一恰当的日子因一项过错或境况与沈砚相遇并被训导：场景地点、时辰、过错类型都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨省迟到训诫、戒尺宣判受罚、藏书阁罚抄律令、夜谈沈砚守灯旧事、第四日结算抉择等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入沈砚的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。';
     }
+    base = base.split('沈砚').join(su.discipliner).split('若木').join(su.player);
     return base;
 }
 function buildAIUserMsg(userAction, opts) {
@@ -2158,11 +2258,87 @@ function bindCollapses() {
     });
 }
 
+/* ---------- 起始设置页 ---------- */
+var SU_LAST_KEY = 'xunjie2_setup_last';
+function readSetupUI() {
+    var punish = [], custom = [];
+    document.querySelectorAll('#suPreset input[type="checkbox"]').forEach(function (cb) {
+        if (cb.checked) punish.push(cb.getAttribute('data-p'));
+    });
+    document.querySelectorAll('#suCustom label').forEach(function (lb) {
+        var v = lb.querySelector('.su-ct').value.trim().slice(0, 12);
+        custom.push(v);
+        if (lb.querySelector('.su-cc').checked && v) punish.push(v);
+    });
+    var eraEl = document.querySelector('input[name="suEra"]:checked');
+    var diffEl = document.querySelector('input[name="suDiff"]:checked');
+    return {
+        player: document.getElementById('suPlayer').value.trim().slice(0, 12) || '若木',
+        discipliner: document.getElementById('suDisc').value.trim().slice(0, 12) || '沈砚',
+        era: eraEl ? eraEl.value : 'ancient',
+        difficulty: diffEl ? parseInt(diffEl.value, 10) : 2,
+        punish: punish, custom: custom
+    };
+}
+function fillSetupUI() {
+    var su = null;
+    try { su = JSON.parse(localStorage.getItem(SU_LAST_KEY) || 'null'); } catch (e) {}
+    var d = defaultSetup();
+    su = su || d;
+    var pun = (su.punish && su.punish.length) ? su.punish : d.punish;
+    var cust = su.custom || d.custom;
+    document.getElementById('suPlayer').value = su.player || '若木';
+    document.getElementById('suDisc').value = su.discipliner || '沈砚';
+    document.querySelectorAll('input[name="suEra"]').forEach(function (r) { r.checked = (r.value === (su.era || 'ancient')); });
+    document.querySelectorAll('input[name="suDiff"]').forEach(function (r) { r.checked = (parseInt(r.value, 10) === (su.difficulty || 2)); });
+    document.querySelectorAll('#suPreset input[type="checkbox"]').forEach(function (cb) {
+        cb.checked = pun.indexOf(cb.getAttribute('data-p')) >= 0;
+        cb.parentElement.classList.toggle('on', cb.checked);
+    });
+    document.querySelectorAll('#suCustom label').forEach(function (lb, i) {
+        var tx = lb.querySelector('.su-ct'), cb = lb.querySelector('.su-cc');
+        tx.value = cust[i] || '';
+        cb.checked = !!(tx.value && pun.indexOf(tx.value) >= 0);
+        lb.classList.toggle('on', cb.checked);
+    });
+}
+function setupStart(aiOpenFlag) {
+    S.setup = readSetupUI();
+    if (!S.setup.punish.length) toast('未勾选任何罚则：后续剧情将只以训话与记录为主');
+    try { localStorage.setItem(SU_LAST_KEY, JSON.stringify(S.setup)); } catch (e) {}
+    document.getElementById('setupMask').style.display = 'none';
+    applySetupToUI();
+    renderStatus();
+    if (aiOpenFlag && aiUsable()) aiFreshOpening(); else startScene('s1');
+}
+function applySetupToUI() {
+    var su = S.setup || defaultSetup();
+    function st(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+    st('suPlayerName', su.player);
+    st('suDiscName', su.discipliner);
+    st('suDiscRowName', su.discipliner);
+    st('suDiscRowRole', su.era === 'modern' ? '训导处 · 督导老师' : '戒律堂首座 · 大师兄');
+    st('suPlayerRole', su.era === 'modern' ? '违纪学生 · 训导处重点关注' : '小师弟 · 戒律堂编外弟子');
+    st('suDiscLook', su.era === 'modern' ? '清瘦挺拔 · 衬衫熨帖无褶' : '清瘦挺拔 · 常着月白道袍');
+    st('suStrictName', su.discipliner);
+    st('suRuleName', su.difficulty === 3 ? '严酷档' : su.difficulty === 1 ? '温和档' : '标准档');
+    st('suRuleTime', su.era === 'modern' ? '06:50 · 晨会点名前' : '卯时末·辰时初');
+    st('suRuleStrict', su.difficulty === 3 ? '严酷（8-12条）' : su.difficulty === 1 ? '温和（4-6条）' : '标准（6-10条）');
+    st('suSeed', 'XY-2026-' + su.player + '-' + (su.era === 'modern' ? 'MD' : 'XY'));
+    st('suDiffLabel', su.difficulty === 3 ? '严酷 · 罚重账狠' : su.difficulty === 1 ? '温和 · 说理为主' : '标准 · 真实难度');
+    var ct = document.getElementById('contract');
+    if (ct && !ct.innerHTML) ct.textContent = su.era === 'modern' ? '📜 当前契约条款：每日晨会点名；禁入天台与机房；违纪需主动上报。' : '📜 当前契约条款：每日晨昏定省；禁止私自进入药圃；违规需主动上报。';
+}
+
 /* ---------- 启动 / 恢复存档 ---------- */
 (function init() {
     loadAI();
     bindAIButtons();
     bindCollapses();
+    document.querySelectorAll('.su-checks label').forEach(function (lb) {
+        var cb = lb.querySelector('input[type="checkbox"]');
+        if (cb) cb.addEventListener('change', function () { lb.classList.toggle('on', cb.checked); });
+    });
     var aiOpen = false;
     try { if (localStorage.getItem('xunjie2_aiopen') === '1') { localStorage.removeItem('xunjie2_aiopen'); aiOpen = true; } } catch (e) {}
     var restored = false;
@@ -2174,6 +2350,7 @@ function bindCollapses() {
                 S = o.S;
                 if (!S.memory || !S.memory.viol) S.memory = { viol: {}, loc: {} };
                 if (!Array.isArray(S.aiChoices)) S.aiChoices = [];
+                if (!S.setup || !S.setup.player) S.setup = defaultSetup();
                 if (o.story) story.innerHTML = o.story;
                 restored = true;
             }
@@ -2183,6 +2360,7 @@ function bindCollapses() {
         document.getElementById('restoreBar').style.display = 'flex';
         var sc = SCENES[S.scene];
         renderStatus();
+        applySetupToUI();
         if (S.ended) {
             addRestart();
             freeInput.disabled = true;
@@ -2197,10 +2375,11 @@ function bindCollapses() {
             }
         }
         story.scrollTop = story.scrollHeight;
-    } else if (aiOpen && aiUsable()) {
-        aiFreshOpening();
     } else {
-        startScene('s1');
+        /* 起始设置页：填写主控/训诫者名字、时代、难度与罚则后开始 */
+        fillSetupUI();
+        document.getElementById('setupMask').style.display = 'flex';
+        document.getElementById('suStart').onclick = function () { setupStart(aiOpen); };
     }
 })();
 </script>
