@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>训戒男模拟器 2.0 · 仙侠篇 · 公开版（自接API）</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #1a1e24;
+            font-family: '宋体', 'Songti SC', 'Times New Roman', serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .game-container {
+            max-width: 960px;
+            width: 100%;
+            background: #f2efe6;
+            background-image: linear-gradient(145deg, #e8e2d4 0%, #f5f1e8 100%);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -8px rgba(0,0,0,0.7), inset 0 0 0 1px #cfc5b0;
+            padding: 24px 28px 32px;
+            color: #2d2a24;
+            border: 1px solid #b8aa8c;
+        }
+        /* 标题区 */
+        .header-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 3px double #a89b80;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header-title h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: 6px;
+            color: #3f3a2e;
+            text-shadow: 2px 2px 0 rgba(180, 160, 130, 0.2);
+        }
+        .header-title .version {
+            font-size: 1rem;
+            color: #7a6e5a;
+            font-style: italic;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .header-actions button {
+            background: #e3dbcc;
+            border: 1px solid #b3a283;
+            border-radius: 30px;
+            padding: 4px 14px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            color: #4a4234;
+            cursor: pointer;
+        }
+        .header-actions button:hover { background: #d6cbb6; }
+        /* 存档恢复条 */
+        .restore-bar {
+            display: none;
+            background: #e0d6c2;
+            border: 1px dashed #8b7a5c;
+            border-radius: 12px;
+            padding: 8px 14px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: #4a4234;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .restore-bar button {
+            background: #8b7a5c;
+            color: #f5f0e6;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        /* 状态网格 */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            background: #e3dbcc;
+            border-radius: 16px;
+            padding: 16px 18px;
+            border: 1px solid #cbbfa8;
+            margin-bottom: 22px;
+            box-shadow: inset 0 2px 5px rgba(140, 120, 90, 0.15);
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.95rem;
+            border-bottom: 1px dashed #b8aa90;
+            padding: 4px 0;
+            position: relative;
+        }
+        .status-label {
+            color: #5e5342;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .status-value {
+            font-weight: 700;
+            color: #2f2a1f;
+            background: #f0eadc;
+            padding: 2px 10px;
+            border-radius: 30px;
+            border: 1px solid #cfc2a8;
+            font-size: 0.9rem;
+            min-width: 50px;
+            text-align: center;
+        }
+        .status-value.good { color: #2d6a4f; }
+        .status-value.warn { color: #b1560f; }
+        .status-value.danger { color: #a12b2b; }
+        .floater {
+            position: absolute;
+            right: 4px;
+            top: -16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            pointer-events: none;
+            animation: floatUp 1.15s ease forwards;
+        }
+        .floater.up { color: #2d6a4f; }
+        .floater.down { color: #a12b2b; }
+        @keyframes floatUp {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-14px); }
+        }
+
+        /* 双栏主区 */
+        .main-panels {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .panel-left {
+            flex: 2.4;
+            min-width: 320px;
+        }
+        .panel-right {
+            flex: 1;
+            min-width: 230px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .panel-card {
+            background: #ede7db;
+            border-radius: 18px;
+            padding: 16px 18px;
+            border: 1px solid #c6b9a1;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+        .panel-card h3 {
+            font-size: 1.1rem;
+            border-left: 5px solid #8b7a5c;
+            padding-left: 12px;
+            margin-bottom: 12px;
+            color: #3d372b;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        /* 角色信息块 */
+        .char-sheet {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .char-row {
+            display: flex;
+            font-size: 0.96rem;
+            line-height: 1.5;
+        }
+        .char-label {
+            width: 70px;
+            color: #6b5f4c;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .char-text {
+            color: #2e2a22;
+            font-weight: 500;
+        }
+        .badge {
+            display: inline-block;
+            background: #b0a183;
+            color: #f5f0e6;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 30px;
+            margin-left: 6px;
+            font-weight: 400;
+        }
+
+        /* 剧情正文区 */
+        .story-box {
+            background: #f8f5ed;
+            border-radius: 18px;
+            padding: 20px 22px;
+            border: 1px solid #cfc3ab;
+            box-shadow: inset 0 0 12px #e0d7c6;
+            margin-bottom: 18px;
+            max-height: 560px;
+            overflow-y: auto;
+        }
+        .story-box > * { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .story-box p {
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 14px;
+            text-indent: 2em;
+            color: #2b261e;
+            text-align: justify;
+        }
+        .story-box p.scene-head {
+            text-indent: 0;
+            font-weight: 700;
+            color: #3f3a2e;
+            letter-spacing: 2px;
+            border-bottom: 1px dashed #c0b394;
+            padding-bottom: 6px;
+        }
+        .narration {
+            color: #4e463a;
+            background: #f1ecdf;
+            padding: 8px 14px;
+            border-left: 6px solid #b8a684;
+            border-radius: 0 12px 12px 0;
+            margin: 16px 0;
+            font-size: 0.98rem;
+            line-height: 1.8;
+        }
+        .dialogue {
+            font-weight: 500;
+            color: #2d4a3b;
+            background: #e9e1d2;
+            padding: 10px 16px;
+            border-radius: 16px 16px 16px 4px;
+            margin: 12px 0 12px 12px;
+            border-left: 3px solid #7f8b6b;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+        .dialogue strong { color: #3a5a44; }
+
+        /* 行动选项区 */
+        .action-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+            min-height: 10px;
+        }
+        .action-btn {
+            background: #d9cfbd;
+            border: 1px solid #b3a283;
+            border-radius: 40px;
+            padding: 10px 22px;
+            font-size: 1rem;
+            font-family: inherit;
+            color: #2a261e;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 500;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 0 #a09179;
+            flex: 0 1 auto;
+        }
+        .action-btn:hover {
+            background: #cec2ac;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .action-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 0 #a09179;
+        }
+        .action-btn:disabled {
+            opacity: 0.45;
+            cursor: wait;
+            transform: none;
+        }
+        .action-btn.special {
+            background: #b9ae97;
+            border-color: #8f7e62;
+            color: #1f1c14;
+            font-weight: 600;
+        }
+        .action-btn.advance {
+            background: #8b7a5c;
+            color: #f5f0e6;
+            border-color: #6e5e46;
+            font-weight: 600;
+        }
+
+        /* 自由输入 */
+        .free-input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            background: #e6dfd1;
+            padding: 12px 14px;
+            border-radius: 40px;
+        }
+        .free-input-area input {
+            flex: 1;
+            padding: 10px 18px;
+            border-radius: 40px;
+            border: 1px solid #b7a98e;
+            background: #faf7f0;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .free-input-area button {
+            background: #8b7a5c;
+            border: none;
+            color: #f5f0e6;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 500;
+            letter-spacing: 1px;
+            border: 1px solid #6e5e46;
+        }
+        .free-input-area button:disabled { opacity: 0.5; cursor: wait; }
+        .hint {
+            font-size: 0.75rem;
+            color: #8e826e;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        /* 右下角小面板 */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            padding: 5px 0;
+            border-bottom: 1px dotted #bfb29b;
+        }
+        .info-label { color: #665c4b; }
+        .info-value { font-weight: 600; color: #2d2a1f; text-align: right; }
+
+        /* 结局卡 */
+        .ending-card {
+            background: linear-gradient(145deg, #efe6d2, #f7f2e6);
+            border: 2px solid #8b7a5c;
+            border-radius: 18px;
+            padding: 20px 22px;
+            margin: 12px 0;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+        .ending-card h2 {
+            font-size: 1.4rem;
+            color: #3f3a2e;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+        .ending-card p {
+            font-size: 0.98rem;
+            line-height: 1.85;
+            margin-bottom: 10px;
+            text-indent: 2em;
+            color: #2b261e;
+        }
+        .rating { margin-bottom: 10px; font-size: 0.95rem; color: #5e5342; }
+        .rating-badge {
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 30px;
+            color: #f5f0e6;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        .r-S { background: #b8860b; }
+        .r-A { background: #2d6a4f; }
+        .r-B { background: #5c6f8b; }
+        .r-C { background: #a12b2b; }
+        .end-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #4a4234;
+            margin-top: 10px;
+            border-top: 1px dashed #b3a283;
+            padding-top: 10px;
+        }
+
+        /* 滚动条美化 */
+        .story-box::-webkit-scrollbar { width: 8px; }
+        .story-box::-webkit-scrollbar-track { background: #e2d9ca; border-radius: 10px; }
+        .story-box::-webkit-scrollbar-thumb { background: #b3a283; border-radius: 10px; }
+        hr {
+            border: none;
+            border-top: 1px solid #cfc3ab;
+            margin: 8px 0;
+        }
+        .footer-note {
+            font-size: 0.75rem;
+            color: #8e826e;
+            text-align: right;
+            margin-top: 18px;
+            border-top: 1px solid #d6ccba;
+            padding-top: 10px;
+            font-style: italic;
+        }
+        .contract-highlight {
+            background: #e0d6c2;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: #3f382c;
+            margin-top: 8px;
+            line-height: 1.7;
+        }
+
+        /* 用户行动展示（与剧情内容视觉区分） */
+        .user-msg {
+            background: #e7ebf2;
+            border-left: 4px solid #5c6f8b;
+            color: #313c55;
+            border-radius: 4px 16px 16px 16px;
+            margin: 12px 12px 12px 0;
+            padding: 10px 16px;
+            font-size: 0.98rem;
+            line-height: 1.8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .user-msg strong { color: #41527a; letter-spacing: 1px; }
+        .arc-divider {
+            border: none;
+            border-top: 1px dashed #b8a684;
+            margin: 14px 40px 10px;
+            height: 0;
+        }
+
+        /* 折叠交互 */
+        .collapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e3dbcc;
+            border: 1px solid #cbbfa8;
+            border-radius: 14px;
+            padding: 10px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #3f3a2e;
+            user-select: none;
+            font-size: 0.95rem;
+        }
+        .chev { transition: transform 0.15s; color: #7a6e5a; }
+        .status-wrap.collapsed .chev { transform: rotate(-90deg); }
+        .status-wrap.collapsed .status-grid { display: none; }
+        .panel-card h3 { cursor: pointer; position: relative; }
+        .panel-card h3::after {
+            content: '▾';
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7a6e5a;
+            font-size: 0.85rem;
+            transition: transform 0.15s;
+        }
+        .panel-card.collapsed h3::after { transform: translateY(-50%) rotate(-90deg); }
+        .panel-card.collapsed > *:not(h3) { display: none; }
+
+        /* AI 设置 */
+        .ai-check {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #3f382c;
+            margin: 6px 0;
+            cursor: pointer;
+            line-height: 1.5;
+        }
+        .ai-status { font-size: 0.8rem; color: #4a4234; margin-top: 6px; font-weight: 600; }
+        .ai-strict-label {
+            font-size: 0.8rem;
+            color: #3f382c;
+            font-weight: 600;
+            margin: 10px 0 4px;
+            line-height: 1.5;
+        }
+        .ai-strict-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .ai-pill {
+            background: #e3dbcc;
+            border: 1px solid #b3a283;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            color: #3f382c;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .ai-pill:hover { background: #d6cbb6; }
+        .ai-pill.active {
+            background: #8b7a5c;
+            color: #f5f0e6;
+            border-color: #6e5e46;
+            font-weight: 600;
+        }
+        .ai-note { font-size: 0.72rem; color: #8e826e; line-height: 1.6; margin-top: 6px; }
+        /* API 连接区（公开版：用户自带 Key） */
+        .ai-connect { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #c2b394; }
+        .ai-connect-title { font-size: 0.78rem; font-weight: 700; color: #4a4234; margin-bottom: 6px; }
+        .ai-field { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .ai-field label { font-size: 0.75rem; color: #6b5f4c; width: 58px; flex-shrink: 0; font-weight: 600; }
+        .ai-field input {
+            flex: 1; min-width: 0; border: 1px solid #b7a98e; border-radius: 8px;
+            background: #faf7f0; font-family: inherit; font-size: 0.75rem; padding: 5px 8px; color: #2b261e; outline: none;
+        }
+        .ai-field input:focus { border-color: #8b7a5c; }
+        .ai-save {
+            width: 100%; background: #8b7a5c; color: #f5f0e6; border: none; border-radius: 20px;
+            padding: 7px 0; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-top: 2px;
+        }
+        .ai-save:hover { background: #75654a; }
+        .ai-tutorial { margin-top: 8px; font-size: 0.75rem; }
+        .ai-tutorial summary { cursor: pointer; color: #6e5e46; font-weight: 600; }
+        .ai-tutorial ol { margin: 6px 0 0 18px; color: #4a4234; line-height: 1.7; padding-right: 4px; }
+        .ai-tutorial b { color: #2f2a1f; }
+        .ai-cost {
+            margin-top: 8px; font-size: 0.72rem; color: #6e5e46; line-height: 1.7;
+            background: #efe7d6; border: 1px dashed #b8a684; border-radius: 10px; padding: 6px 8px;
+        }
+        .ai-cost b { color: #a12b2b; }
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            transform: translateX(-50%);
+            background: #3f3a2e;
+            color: #f5f0e6;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            z-index: 999;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            max-width: 80vw;
+        }
+
+        @media (max-width: 720px) {
+            .game-container { padding: 16px 14px 24px; }
+            .header-title h1 { font-size: 1.4rem; letter-spacing: 3px; }
+            .story-box { max-height: 58vh; padding: 14px 16px; }
+            .end-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <!-- 头部 -->
+    <div class="header-title">
+        <h1>训戒男模拟器 2.0</h1>
+        <span class="version">仙侠 · 戒律堂 · 若木篇 · 公开版 · 自接API</span>
+        <div class="header-actions">
+            <button id="btnAI" title="AI 引擎设置">🤖 AI</button>
+            <button id="btnRestart" title="清空存档并重新开始">↺ 重开</button>
+        </div>
+    </div>
+
+    <div class="restore-bar" id="restoreBar">
+        <span>💾 已恢复上次进度，可继续游玩。</span>
+        <button id="btnFresh">重新开始</button>
+    </div>
+
+    <!-- 状态栏 实时全局（默认折叠，点击标题展开） -->
+    <div class="status-wrap collapsed" id="statusWrap">
+        <div class="collapse-header" id="statusToggle"><span>📊 状态栏 · 实时全局（点击展开 / 收起）</span><span class="chev">▾</span></div>
+        <div class="status-grid">
+        <div class="status-item"><span class="status-label">📅 时日</span><span class="status-value" id="v-day">第3日 · 辰时</span></div>
+        <div class="status-item"><span class="status-label">📍 地点</span><span class="status-value" id="v-loc">戒律堂·静室</span></div>
+        <div class="status-item"><span class="status-label">❤️ 好感度</span><span class="status-value good" id="v-favor">+12</span></div>
+        <div class="status-item"><span class="status-label">🤝 信任度</span><span class="status-value" id="v-trust">28</span></div>
+        <div class="status-item"><span class="status-label">⚠️ 违规点</span><span class="status-value warn" id="v-violation">6</span></div>
+        <div class="status-item"><span class="status-label">🔑 特权点</span><span class="status-value" id="v-privilege">85</span></div>
+        <div class="status-item"><span class="status-label">⚖️ 管教强度</span><span class="status-value" id="v-discipline">45</span></div>
+        <div class="status-item"><span class="status-label">📈 情感投入</span><span class="status-value" id="v-emotion">18</span></div>
+        <div class="status-item"><span class="status-label">🛡️ 服从度</span><span class="status-value" id="v-obedience">22</span></div>
+        <div class="status-item"><span class="status-label">⚡ 反抗度</span><span class="status-value danger" id="v-resistance">8</span></div>
+        </div>
+    </div>
+
+    <!-- 双栏主内容 -->
+    <div class="main-panels">
+        <!-- 左侧：剧情 + 行动 -->
+        <div class="panel-left">
+            <!-- 剧情正文 -->
+            <div class="story-box" id="story"></div>
+
+            <!-- 行动选项 -->
+            <div class="action-area" id="actionArea"></div>
+
+            <!-- 自由输入 -->
+            <div class="free-input-area">
+                <input type="text" id="customActionInput" placeholder="自由输入任何行动或话语……例如：我主动认错 / 想跑 / 问师兄萤火的事">
+                <button id="freeSubmit">执行</button>
+            </div>
+            <div class="hint">💡 自由输入完全开放：坦白、求饶、顶嘴、提问、说累、提“萤火”、认错、甚至想跑——说什么都行。<span id="aiHintState">当前由本地剧本引擎响应；启用 AI 后，沈砚将真正听懂你的每一句话。</span></div>
+        </div>
+
+        <!-- 右侧：角色与规则面板 -->
+        <div class="panel-right">
+            <!-- AI 参与设置 -->
+            <div class="panel-card" id="aiCard">
+                <h3>🤖 AI 参与设置</h3>
+                <div>
+                    <label class="ai-check"><input type="checkbox" id="aiEnabled"> 启用 AI 智能剧情（自由输入实时响应）</label>
+                    <label class="ai-check"><input type="checkbox" id="aiScopeAll"> AI 同时接管选项按钮（关闭则选项走本地精写剧本）</label>
+                    <div class="ai-connect">
+                        <div class="ai-connect-title">🔗 连接你的 API（不内置、不共享，Key 只存在你自己的浏览器）</div>
+                        <div class="ai-field"><label>API 地址</label><input id="aiEndpoint" type="text" placeholder="https://api.deepseek.com/v1/chat/completions" autocomplete="off"></div>
+                        <div class="ai-field"><label>API Key</label><input id="aiKey" type="password" placeholder="sk-……（仅存本地浏览器）" autocomplete="off"></div>
+                        <div class="ai-field"><label>模型名称</label><input id="aiModel" type="text" placeholder="deepseek-v4-pro 或 deepseek-flash" autocomplete="off"></div>
+                        <button id="aiSaveConn" class="ai-save">💾 保存并连接</button>
+                        <details class="ai-tutorial">
+                            <summary>❓ 接入教程（以 DeepSeek 为例，约3分钟）</summary>
+                            <ol>
+                                <li>打开 <b>platform.deepseek.com</b>，注册或登录账号；</li>
+                                <li>左侧菜单「<b>充值</b>」——新充 10 元即可畅玩数千轮；</li>
+                                <li>左侧菜单「<b>API keys</b>」→「创建 API key」→ 复制 <b>sk-</b> 开头的密钥（密钥只完整显示一次）；</li>
+                                <li>回到本页：API 地址填 <b>https://api.deepseek.com/v1/chat/completions</b>，API Key 粘贴密钥，模型填 <b>deepseek-v4-pro</b>（更便宜可选 <b>deepseek-flash</b>），点「💾 保存并连接」；</li>
+                                <li>勾选顶部「启用 AI 智能剧情」即可开玩。也兼容任意 OpenAI 兼容接口（硅基流动 / Moonshot / 通义等）：换成对应地址与模型名即可。</li>
+                            </ol>
+                        </details>
+                        <div class="ai-cost">💰 每轮费用参考（DeepSeek 官方价）：每轮对话约消耗 <b>4~5K tokens</b>（系统提示约2K＋剧情上下文约1.5K＋回复约1K）。<b>deepseek-v4-pro</b> 约合 <b>¥0.01~0.05 / 轮</b>（闲时更低；剧情越长上下文越大）；<b>deepseek-flash</b> 约为前者的 1/4~1/5，即 <b>¥0.003~0.01 / 轮</b>。10 元余额通常可支撑 2000~8000 轮对话，实际以平台账单为准。</div>
+                    </div>
+                    <div class="ai-strict-label">⚖️ 沈砚严厉程度（选定后，后续剧情立即按此基调推进）：</div>
+                    <div class="ai-strict-pills" id="aiStrictPills">
+                        <button class="ai-pill" data-lv="1">① 温润宽和</button>
+                        <button class="ai-pill" data-lv="2">② 标准师门</button>
+                        <button class="ai-pill" data-lv="3">③ 严厉管教</button>
+                        <button class="ai-pill" data-lv="4">④ 铁面严苛</button>
+                    </div>
+                    <div class="ai-note" id="aiStrictDesc"></div>
+                    <div class="ai-status" id="aiStatus">AI 状态：未连接 API · 请填写 API 地址 / Key / 模型后点「保存并连接」</div>
+                </div>
+            </div>
+
+            <!-- 训诫者信息 -->
+            <div class="panel-card">
+                <h3>🧑‍⚖️ 训诫者 · 沈砚</h3>
+                <div class="char-sheet">
+                    <div class="char-row"><span class="char-label">姓名</span><span class="char-text">沈砚</span></div>
+                    <div class="char-row"><span class="char-label">身份</span><span class="char-text">戒律堂首座 · 大师兄</span></div>
+                    <div class="char-row"><span class="char-label">性格</span><span class="char-text">温润如玉 · 底线分明</span><span class="badge">保守底线</span></div>
+                    <div class="char-row"><span class="char-label">外貌</span><span class="char-text">清瘦挺拔 · 常着月白道袍</span></div>
+                    <div class="char-row"><span class="char-label">状态</span><span class="char-text" id="shenState">静水深流 · 不可测</span></div>
+                </div>
+                <div class="contract-highlight" id="contract">📜 当前契约条款：每日晨昏定省；禁止私自进入药圃；违规需主动上报。</div>
+            </div>
+
+            <!-- 玩家信息 -->
+            <div class="panel-card">
+                <h3>🌿 被管教你 · 若木</h3>
+                <div class="char-sheet">
+                    <div class="char-row"><span class="char-label">身份</span><span class="char-text">小师弟 · 戒律堂编外弟子</span></div>
+                    <div class="char-row"><span class="char-label">性格</span><span class="char-text">跳脱 · 好奇心重</span></div>
+                    <div class="char-row"><span class="char-label">隐藏动机</span><span class="char-text" id="motive">真心服从（暂定）</span></div>
+                    <div class="char-row"><span class="char-label">过错记录</span><span class="char-text" id="violMemo">暂无</span></div>
+                </div>
+            </div>
+
+            <!-- 规则简表 -->
+            <div class="panel-card">
+                <h3>📋 明规则 · 标准档</h3>
+                <div class="info-row"><span class="info-label">晨省时间</span><span class="info-value">卯时末·辰时初</span></div>
+                <div class="info-row"><span class="info-label">违规判定</span><span class="info-value">正常·首次警告</span></div>
+                <div class="info-row"><span class="info-label">严苛度</span><span class="info-value">标准（6-10条）</span></div>
+                <div class="info-row"><span class="info-label">连坐累积</span><span class="info-value">同类违规加倍</span></div>
+                <hr>
+                <div class="info-row"><span class="info-label">世界种子</span><span class="info-value">XY-2025-若木-03</span></div>
+                <div class="info-row"><span class="info-label">游戏难度</span><span class="info-value">中等 · 真实难度</span></div>
+            </div>
+
+            <!-- 特权与监察 -->
+            <div class="panel-card">
+                <h3>🕵️ 监视网络</h3>
+                <div class="info-row"><span class="info-label">AI管家</span><span class="info-value">记录出入·已记录</span></div>
+                <div class="info-row"><span class="info-label">眼线NPC</span><span class="info-value" id="w-eye">外门弟子·阿巳</span></div>
+                <div class="info-row"><span class="info-label">下次汇报</span><span class="info-value" id="w-report">午时·需主动</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部提示 -->
+    <div class="footer-note">
+        训戒模拟器2.0 · 单机网页版 · AI 可接入 · 本地引擎保底 · 所有情节均为虚构 · 输入“中止”可安全跳过场景
+    </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================
+   训戒男模拟器 2.0 · 仙侠篇 · 单机引擎
+   - 所有选择/自由输入 立即产生剧情回应与数值变化
+   - 自由输入采用意图识别（每场景专属 + 全局通用）
+   - 自动存档（localStorage），支持恢复与重开
+   ===================================================== */
+var KEY = 'xunjie2_save_v1';
+var story = document.getElementById('story');
+var actionArea = document.getElementById('actionArea');
+var freeInput = document.getElementById('customActionInput');
+
+function DEF() {
+    return {
+        day: 3, time: '辰时', loc: '戒律堂·静室',
+        favor: 12, trust: 28, violation: 6, privilege: 85,
+        discipline: 45, emotion: 18, obedience: 22, resistance: 8,
+        actions: 0, scene: 's1', ended: false, aiArc: false,
+        flags: {}, memory: { viol: {}, loc: {} }, aiChoices: []
+    };
+}
+var S = DEF();
+
+var CLAMP = {
+    favor: [-30, 100], trust: [0, 100], violation: [0, 99],
+    privilege: [0, 999], discipline: [0, 100], emotion: [0, 100],
+    obedience: [0, 100], resistance: [0, 100]
+};
+var GOOD_DOWN = { violation: 1, resistance: 1, discipline: 1 };
+
+/* ---------- 剧情输出 ---------- */
+function el(cls, html) {
+    var e = document.createElement('div');
+    e.className = cls;
+    e.innerHTML = html;
+    story.appendChild(e);
+    story.scrollTop = story.scrollHeight;
+    return e;
+}
+function hd(t) { var e = document.createElement('p'); e.className = 'scene-head'; e.innerHTML = t; story.appendChild(e); story.scrollTop = story.scrollHeight; }
+function line(t) { var e = document.createElement('p'); e.innerHTML = t; story.appendChild(e); story.scrollTop = story.scrollHeight; }
+function say(name, t) { el('dialogue', '<strong>' + name + '：</strong>“' + t + '”'); }
+function n(t) { el('narration', '【旁白】' + t); }
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+/* 用户回答展示模块：完整呈现玩家输入，与剧情内容明确视觉区分 */
+function userMsg(t) { el('user-msg', '<strong>🌿 若木 · 你的行动：</strong>' + esc(t)); }
+var toastTimer = null;
+function toast(msg) {
+    var old = document.querySelector('.toast');
+    if (old) old.remove();
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.remove(); }, 3400);
+}
+
+/* ---------- 数值系统 ---------- */
+function floater(k, d) {
+    var e = document.getElementById('v-' + k);
+    if (!e) return;
+    var f = document.createElement('span');
+    var good = d > 0 || (d < 0 && GOOD_DOWN[k]);
+    f.className = 'floater ' + (good ? 'up' : 'down');
+    f.textContent = (d > 0 ? '+' : '') + d;
+    e.parentElement.appendChild(f);
+    setTimeout(function () { f.remove(); }, 1200);
+}
+function eff(o) {
+    for (var k in o) {
+        if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
+        if (k === 'flags') { Object.assign(S.flags, o[k]); continue; }
+        if (!CLAMP[k]) continue;
+        var old = S[k];
+        var v = old + o[k];
+        v = Math.max(CLAMP[k][0], Math.min(CLAMP[k][1], v));
+        S[k] = v;
+        var d = v - old;
+        if (d !== 0) floater(k, d);
+    }
+    renderStatus();
+}
+function setC(id, txt, cls) {
+    var e = document.getElementById(id);
+    if (!e) return;
+    e.textContent = txt;
+    e.className = 'status-value' + (cls ? ' ' + cls : '');
+}
+function renderStatus() {
+    setC('v-day', '第' + S.day + '日 · ' + S.time);
+    setC('v-loc', S.loc);
+    setC('v-favor', (S.favor >= 0 ? '+' : '') + S.favor, S.favor >= 20 ? 'good' : (S.favor <= 0 ? 'danger' : ''));
+    setC('v-trust', S.trust, S.trust >= 40 ? 'good' : (S.trust <= 15 ? 'warn' : ''));
+    setC('v-violation', S.violation, S.violation >= 18 ? 'danger' : (S.violation >= 10 ? 'warn' : ''));
+    setC('v-privilege', S.privilege, S.privilege <= 20 ? 'warn' : '');
+    setC('v-discipline', S.discipline, S.discipline >= 70 ? 'warn' : '');
+    setC('v-emotion', S.emotion, S.emotion >= 35 ? 'good' : '');
+    setC('v-obedience', S.obedience, S.obedience >= 40 ? 'good' : '');
+    setC('v-resistance', S.resistance, S.resistance >= 15 ? 'danger' : '');
+    renderSide();
+}
+function renderSide() {
+    var f = S.flags;
+    var t = ['每日晨昏定省'];
+    if (f.gardenTerm) t.push('戒尺与罚抄之罚按期销账');
+    if (f.reported) t.push('午时主动汇报行踪');
+    if (f.confined) t.push('禁足三日（除晨省与领罚）');
+    if (f.patrol) t.push('每月朔日随巡山一次');
+    document.getElementById('contract').innerHTML = '📜 当前契约条款：' + t.join('；') + '。';
+    document.getElementById('shenState').textContent =
+        f.backstory ? '守灯十二年 · 旧事未愈' : (f.knowWatch ? '昨夜守圃至三更 · 深藏不露' : '静水深流 · 不可测');
+    document.getElementById('motive').textContent =
+        (S.obedience >= 40 && S.resistance < 15) ? '真心服从（渐稳）' :
+        (S.resistance >= 20) ? '阳奉阴违（浮动）' : '半推半就（试探）';
+    /* 过错记忆展示（重复犯错时沈砚会翻旧账） */
+    var memo = [], viol = (S.memory && S.memory.viol) ? S.memory.viol : {};
+    Object.keys(viol).forEach(function (k) { memo.push(k + '×' + viol[k]); });
+    document.getElementById('violMemo').textContent = memo.length ? memo.join('、') : '暂无';
+    document.getElementById('w-eye').textContent = f.knowWatch ? '外门弟子·阿巳（已心软）' : '外门弟子·阿巳';
+    document.getElementById('w-report').textContent = f.reported ? '午时·已汇报' : '午时·需主动';
+}
+
+/* ---------- 行动渲染与执行 ---------- */
+function renderChoices(list) {
+    actionArea.innerHTML = '';
+    (list || []).filter(function (c) { return !c.if || c.if(); }).forEach(function (c) {
+        var b = document.createElement('button');
+        b.className = 'action-btn' + (c.special ? ' special' : '');
+        b.textContent = c.t;
+        b.onclick = function () {
+            if (aiUsable() && (S.aiArc || AI.cfg.scopeAll)) { aiAct(c.t); } else { doAct(c.run, true, c.t); }
+        };
+        actionArea.appendChild(b);
+    });
+}
+function addAdvance(label, fn) {
+    var b = document.createElement('button');
+    b.className = 'action-btn advance';
+    b.textContent = label || '⏳ 时辰将至 · 继续';
+    b.onclick = fn;
+    actionArea.appendChild(b);
+}
+function addRestart() {
+    actionArea.innerHTML = '';
+    addAdvance('🔄 重新开始 · 换一种活法', function () {
+        doRestart();
+    });
+}
+/* ---------- 剧情自动推进（修复：行动完成后自动流转，无卡滞） ---------- */
+var advToken = 0, advTimer = null;
+function clearAutoAdvance() {
+    advToken++;
+    if (advTimer) { clearTimeout(advTimer); advTimer = null; }
+}
+function scheduleAutoAdvance(to) {
+    var tk = ++advToken;
+    n('（时辰在不觉间推移——剧情即将继续……）');
+    advTimer = setTimeout(function () {
+        if (advToken === tk && !S.ended) startScene(to);
+    }, 1800);
+}
+function doAct(run, counts, userText) {
+    if (counts === undefined) counts = true;
+    if (userText) userMsg(userText);
+    Array.prototype.forEach.call(actionArea.children, function (b) { b.disabled = true; });
+    run();
+    if (counts && !S.ended) {
+        S.actions++;
+        var sc = SCENES[S.scene];
+        if (aiUsable() && S.aiArc) {
+            /* AI自由剧情模式：不设行动次数限制，由AI判断剧情收束后翻篇；按钮区由AI选项接管 */
+            renderChoices(lastAIChoices.length ? aiChoiceButtons(lastAIChoices) : aiModeChoices());
+        } else if (aiUsable()) {
+            /* AI开启：剧情推进交给AI判断，不按次数自动翻篇 */
+            renderChoices(sc.choices());
+        } else {
+            renderChoices(sc.choices());
+            if (S.actions >= sc.need && sc.next) {
+                addAdvance(sc.nextLabel || '⏳ 时辰将至 · 继续', function () { startScene(sc.next); });
+                if (!sc.canAdvance || sc.canAdvance()) scheduleAutoAdvance(sc.next);
+            }
+        }
+    }
+    if (!S.ended) renderStatus();
+    save();
+    story.scrollTop = story.scrollHeight;
+}
+function startScene(id) {
+    clearAutoAdvance();
+    var sc = SCENES[id];
+    S.scene = id; S.actions = 0;
+    if (sc.day) S.day = sc.day;
+    if (sc.time) S.time = sc.time;
+    if (sc.loc) S.loc = sc.loc;
+    sc.enter();
+    renderChoices(sc.choices());
+    renderStatus();
+    save();
+    story.scrollTop = story.scrollHeight;
+}
+
+/* ---------- 存档 ---------- */
+function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ S: S, story: story.innerHTML })); } catch (e) {}
+}
+
+/* ---------- 自由输入：全局通用意图（多样变体随机，避免反应单一固化） ---------- */
+var FREE = [
+    { re: /谢谢|多谢/, run: [
+        function () { say('沈砚', '不必谢。把该做的做完。'); eff({ favor: 1 }); },
+        function () { n('他摇了摇头，嘴角却有些浅浅的弧度。'); say('沈砚', '谢意收到。下次先用在守规矩上。'); eff({ favor: 1, obedience: 1 }); }
+    ] },
+    { re: /对不起|抱歉|我的错|我错了/, run: [
+        function () { say('沈砚', '知错能改。错处记在册上，补在手上。'); eff({ trust: 1 }); },
+        function () { say('沈砚', '这句话，本座听过十七次。'); n('他顿了顿。'); say('沈砚', '——但第十八次说的时候还肯看着我的眼睛，算你长进了些。'); eff({ trust: 2 }); }
+    ] },
+    { re: /饿|糕|点心|吃的|膳|饭/, run: function () {
+        if (!S.flags.snack) {
+            S.flags.snack = true;
+            n('一小碟灵米糕不知何时搁在了你手边，还温着。');
+            say('沈砚', '垫一垫，别噎着。');
+            eff({ favor: 2, emotion: 1 });
+        } else {
+            say('沈砚', '方才那碟，不够？');
+            n('他语气里那点若有若无的笑意，你未必听得出来。');
+        }
+    } },
+    { re: /累|歇|乏|渴/, run: [
+        function () { say('沈砚', '歇一刻，把水喝了，接着来。'); eff({ favor: 1, obedience: 1 }); },
+        function () { say('沈砚', '累是练出来的。不过——'); n('他还是把茶推近了你半寸。'); say('沈砚', '喝完这盏，再撑半个时辰。'); eff({ favor: 1 }); }
+    ] },
+    { re: /不说|沉默|不说话|不理/, run: [
+        function () { n('你抿着嘴，一声不吭。'); say('沈砚', '沉默也是一种答法。只是记性不好的人，沉默得格外久。'); eff({ discipline: 1 }); },
+        function () { n('你不说话，他也不催，只慢慢研他的墨。'); say('沈砚', '静室里多的是时辰。你几时想说，几时开口。'); eff({ emotion: 1 }); }
+    ] },
+    { re: /师兄好|问安|早安|晚安/, run: function () {
+        say('沈砚', '嗯。'); eff({ favor: 1 });
+    } },
+    { re: /夸|好看|厉害|真棒|最好|最帅/, run: [
+        function () { say('沈砚', '嘴甜。律，抄完了吗？'); eff({ discipline: 1 }); },
+        function () { n('他眼皮都没抬。'); say('沈砚', '这本事用在律令上，何愁不成大器。'); eff({ favor: 1 }); }
+    ] },
+    { re: /抱|牵|贴|靠|蹭/, run: function () {
+        n('你刚凑近半步，额头就挨了一记不轻不重的爆栗。');
+        say('沈砚', '站有站相，坐有坐相。');
+        eff({ emotion: 1 });
+    } },
+    { re: /顶嘴|狡辩|不服|凭什么罚/, run: [
+        function () { say('沈砚', '若木，狡辩一次记一次。册子比你想象的厚。'); eff({ discipline: 2 }); },
+        function () { say('沈砚', '不服，可以。'); n('他把《宗门律令》推到你面前。'); say('沈砚', '找出律令里写错的那一条，本座当众收回罚单。找不出，就老实领。'); eff({ discipline: 1, resistance: 1 }); }
+    ] },
+    { re: /几点|什么时辰|时间/, run: function () {
+        n('他指了指案角的更漏。');
+        say('沈砚', '问时辰，不如看功课。时辰不等人，功课也不等。');
+        eff({ obedience: 1 });
+    } },
+    { re: /送你|送给|递给|礼物/, run: function () {
+        say('沈砚', '心意收下。');
+        n('顿了顿——');
+        say('沈砚', '但律，抄完了吗？');
+        eff({ favor: 1, discipline: 1 });
+    } }
+];
+
+var fbIdx = 0;
+var FALLBACKS = [
+    function () { say('沈砚', '话说到这份上，你自己慢慢品。'); eff({ discipline: 1 }); },
+    function () { say('沈砚', '嗯。'); n('他应了一声，却没有抬头——明显是在等你把话说完整。'); },
+    function () { say('沈砚', '若木。心里的话用嘴说，别用沉默说。'); eff({ favor: 1 }); },
+    function () { n('他看了你一会儿，像在掂量你这句话的分量。'); say('沈砚', '念头是好的，做法另说。'); eff({ trust: 1 }); },
+    function () { say('沈砚', '戒律堂不添新规矩，只添新过犯。你方才那句，我先记下了。'); eff({ discipline: 1 }); }
+];
+function fallback() {
+    FALLBACKS[fbIdx++ % FALLBACKS.length]();
+    if (!S.flags.hintShown) {
+        S.flags.hintShown = true;
+        line('（小提示：换种说法会更对味——坦白、求饶、提“萤火”、请教知识、说累、认错；也可点右上角“🤖 AI”接入AI引擎，让沈砚真正听懂你的每一句话。）');
+    }
+}
+/* 本地剧本记忆：同一场景下同一类话第二次说出口 → 沈砚当场点破（AI关闭时的兜底记忆反应） */
+var LOCAL_REPEATS = [
+    function () { say('沈砚', '这话，本座今日已听过一遍。再说一遍，不会多出一分道理。'); },
+    function () { say('沈砚', '又来？若木，同一个说法用第二遍，就成了敷衍。'); },
+    function () { n('他放下笔，静静看了你片刻。'); say('沈砚', '第三遍了。戒律堂的蒲团虽软，经不起你反复磨。'); eff({ discipline: 2 }); }
+];
+/* 意图匹配升级：按命中次数评分取最优，避免首条匹配遮蔽 */
+function runIntent(it, val) {
+    if (it && it.re) {
+        if (!S.memory || !S.memory.loc) S.memory = { viol: {}, loc: {} };
+        var mk = S.scene + '|' + it.re.source;
+        var c = (S.memory.loc[mk] || 0) + 1;
+        S.memory.loc[mk] = c;
+        if (c >= 2) {
+            n('沈砚执笔的手微微一顿——这话他今次不是第一次听见了。');
+            LOCAL_REPEATS[(c - 2) % LOCAL_REPEATS.length]();
+            eff({ discipline: 1 });
+        }
+    }
+    var f = Array.isArray(it.run) ? it.run[Math.floor(Math.random() * it.run.length)] : it.run;
+    f(val);
+}
+function countHits(re, val) {
+    var m = String(val).match(new RegExp(re.source, 'g'));
+    return m ? m.length : 0;
+}
+function matchFree(val) {
+    var best = null, bestScore = 0;
+    (SCENES[S.scene].free || []).forEach(function (it) {
+        var s = countHits(it.re, val);
+        if (s > bestScore) { best = it; bestScore = s; }
+    });
+    if (best) return best;
+    bestScore = 0;
+    FREE.forEach(function (it) {
+        var s = countHits(it.re, val);
+        if (s > bestScore) { best = it; bestScore = s; }
+    });
+    return best;
+}
+
+/* =====================================================
+   剧情场景
+   ===================================================== */
+var SCENES = {
+
+    /* ---------- 场景1：晨省问询 ---------- */
+    s1: {
+        need: 3, next: 's1b',
+        nextLabel: '⏳ 晨省将尽 · 听候发落',
+        enter: function () {
+            hd('【辰时 · 戒律堂 · 静室】');
+            line('晨光透过雕花木窗，在青石砖上投下细碎的光斑。你规规矩矩地跪坐在蒲团上，却忍不住偷偷用余光去瞟案后那个执卷的人——你的大师兄，戒律堂首座，沈砚。');
+            say('沈砚', '若木，今日晨省，你迟了一刻钟。是昨夜又偷溜去后山捉萤火了？');
+            n('你想起昨夜确实翻墙去了后山，还踩坏了半片药圃。这事按理说没人看见……但大师兄的眉眼间分明写着“我已知晓”。案上那本《宗门律令》被翻到“晨昏定省”那一页，压着一枚竹签。');
+            line('他未立刻发作，只是用指尖轻敲桌面，等着你开口。空气里浮动着淡淡的松墨香。你心里清楚，这位大师兄性子虽温和，底线却极严——尤其对欺瞒和偷盗。');
+            say('沈砚', '说罢。错在何处，该领何罚，你自己讲。');
+        },
+        choices: function () { return [
+            { t: '坦白迟到，不提药圃', run: function () {
+                line('你垂下眼，把迟到的事认了，只字不提后山。');
+                say('沈砚', '迟到，认了，很好。');
+                n('他颔首，指尖却在案上那枚竹签上轻轻一点。');
+                say('沈砚', '那我再问你——昨夜子时，后山药圃的篱笆，为何塌了半边？');
+                n('他果然知道。竹签下面压着的，原来不是《律令》，是外门弟子的巡查记录。');
+                eff({ trust: 1, violation: 2 });
+                S.flags.gardenPressed = true;
+            } },
+            { t: '全盘托出，包括药圃', run: function () {
+                line('你深吸一口气，索性竹筒倒豆子——迟到了一刻钟，翻了墙，踩塌了半片药圃的篱，还惊醒了圃里一只冬眠的灵鼠。');
+                n('静室里安静了片刻。');
+                say('沈砚', '墙可以翻，篱笆可以补。你今日肯自己说，比十遍《律令》都值钱。');
+                say('沈砚', '罚是免不了的。但念你坦白，罪减一等。');
+                eff({ trust: 8, favor: 2, obedience: 4, violation: 2 });
+                S.flags.fullHonest = true;
+                S.actions = Math.max(S.actions, 2);
+            } },
+            { t: '撒娇讨饶，说下次不敢', run: function () {
+                line('你凑上前半步，眼尾一弯：“师兄～我错了嘛，下次真不敢了，师兄最好了……”');
+                n('他不动声色地把你按回蒲团。');
+                say('沈砚', '若木。讨饶是讨饶，认错是认错。你只说下次，不说这次。');
+                eff({ discipline: 3, favor: -1, violation: 1 });
+            } },
+            { t: '辩解：为采晨露泡茶', run: function () {
+                line('你清清嗓子：“师弟我天不亮就起了，专为采后山第一捧晨露，给师兄泡一盏明目的露茶——”');
+                say('沈砚', '晨露在叶尖，泥在裤脚。若木，你这是把我当三岁孩童哄？');
+                n('完了。袖口还沾着药圃的灵土，铁证如山。');
+                eff({ trust: -3, resistance: 2, violation: 1 });
+                S.flags.busted = true;
+            } },
+            { t: '沉默不语，观察反应', special: true, run: function () {
+                n('你抿紧嘴，一声不吭，只拿眼睛瞟他。静室里只剩更漏滴答。');
+                say('沈砚', '不肯说？好。');
+                n('他翻开巡查记录，一页页念给你听——子时二刻翻墙，子时三刻入圃，篱塌半边，灵鼠受惊。');
+                say('沈砚', '你看，你不说，也有人替你说。往后你的每一桩，都由旁人的眼睛告诉我——你想这样么？');
+                n('一瞬间你竟觉得，认错似乎比沉默划算多了。');
+                eff({ discipline: 2, violation: 1, trust: -1 });
+            } }
+        ]; },
+        free: [
+            { re: /药圃|篱笆|踩坏|踩塌|圃/, run: function () {
+                line('你索性把药圃的事也认了。');
+                say('沈砚', '自己肯认，比瞒着强。');
+                eff({ trust: 5, violation: 2 });
+                S.flags.gardenAdmitted = true;
+            } },
+            { re: /萤火|捉萤|流萤/, run: function () {
+                n('他执卷的手微微一顿。');
+                say('沈砚', '后山的萤火，确是该赏。');
+                say('沈砚', '可赏萤有赏萤的时辰。翻墙捉的萤火，提在手里也不亮。');
+                eff({ emotion: 2 });
+                S.flags.fireflyMentioned = true;
+            } },
+            { re: /戒尺|领罚|要罚|罚我/, run: function () {
+                n('他眉梢微挑。');
+                say('沈砚', '倒是主动。');
+                n('他把戒尺从案角取下，却没有递给你，只搁在案上。');
+                say('沈砚', '先想明白错处，再想刑罚。顺序不能反。');
+                eff({ obedience: 3, discipline: 2 });
+            } },
+            { re: /跑|逃|溜|翻墙/, run: function () {
+                n('你脚底抹油刚起身，袖子就被一只手稳稳拽住——快得根本没看清他什么时候动的。');
+                say('沈砚', '戒律堂的门，进来了，就得把事说清楚再走。');
+                eff({ resistance: 5, violation: 3, discipline: 3 });
+            } },
+            { re: /笑|好笑|有意思/, run: function () {
+                say('沈砚', '很有趣？');
+                n('他把《律令》往你面前推了推。');
+                say('沈砚', '笑完了，把“晨昏定省”这一条，念给我听。');
+                eff({ discipline: 1 });
+            } },
+            { re: /哭|委屈/, run: function () {
+                n('他的语气缓了半分，递过一方素帕。');
+                say('沈砚', '委屈就先擦擦。擦完了，错处还是要一样一样说清楚。');
+                eff({ favor: 1, emotion: 1 });
+            } },
+            { re: /为什么|凭什么|为何/, run: function () {
+                say('沈砚', '晨省不是给你我立的，是给满宗弟子立的。我守了七年，你迟到一刻钟——你说该不该问？');
+                eff({ discipline: 1 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景1b：宣判 ---------- */
+    s1b: {
+        need: 1, next: 's2',
+        nextLabel: '⏳ 午时 · 戒尺与罚抄',
+        enter: function () {
+            S.time = '辰时末';
+            hd('【辰时末 · 静室 · 宣判】');
+            n('沈砚提起笔，在戒律册上落墨。');
+            if (S.flags.fullHonest || S.flags.gardenAdmitted) {
+                say('沈砚', '迟到，罚抄《宗门律令·晨昏篇》五遍；翻墙入圃、毁篱惊兽，戒尺三下——念你今日坦白，减为两下。另——每日午时，主动向我报一次行踪，直到把规矩记进心里。');
+                n('三条罚，条条落在实处，没有一句重话。你松了口气，又莫名觉得……比骂一顿还难受。');
+                eff({ trust: 3 });
+            } else {
+                say('沈砚', '迟到，罚抄十遍。翻墙毁篱，戒尺五下，一记不饶。禁足三日，除晨省与领罚，不得出戒律堂半步。');
+                say('沈砚', '若木，戒尺打的是手，罚抄磨的是心。两样一起记，才记得牢。');
+                n('十遍。你眼前已经浮现出被墨染黑的手指，和火辣辣的手心。');
+                eff({ violation: 3, discipline: 4 });
+                S.flags.confined = true;
+            }
+            S.flags.gardenTerm = true;
+        },
+        choices: function () { return [
+            { t: '认罚，一言不发', run: function () {
+                n('你垂首应下，一句话也没多说。');
+                say('沈砚', '嗯。去罢。');
+                eff({ obedience: 3, emotion: 1 });
+            } },
+            { t: '求情（消耗20特权点）', if: function () { return S.privilege >= 20; }, run: function () {
+                eff({ privilege: -20 });
+                n('你把腰牌里的特权点押上了二十个，换罚抄减半。');
+                say('沈砚', '特权点是你自己挣的体面。花在这里，不算亏。');
+                eff({ trust: 2 });
+            } },
+            { t: '求情（特权点不足）', if: function () { return S.privilege < 20; }, run: function () {
+                say('沈砚', '你的特权点，昨夜翻墙的时候怎么不花？');
+                eff({ discipline: 2 });
+            } },
+            { t: '嬉皮笑脸：“师兄罚得对”', run: function () {
+                say('沈砚', '嘴上认得快。手上有几分成色，午时戒尺上见分晓。');
+                eff({ favor: -1, discipline: 2 });
+            } },
+            { t: '主动请教戒尺的规矩', run: function () {
+                say('沈砚', '戒尺只打三处错：迟到、欺瞒、毁物。打前报数，打后谢训，一记是一记。');
+                n('他讲得极细，连挨罚时手该怎样搁、疼时如何调息都说了。你默默记下。');
+                eff({ trust: 2, emotion: 1 });
+                S.flags.askSeed = true;
+            } },
+            { t: '主动跪省，请师兄监督', run: function () {
+                n('你没等他开口，自己挪到蒲团旁跪直了，脊背挺得笔直。');
+                say('沈砚', '跪省一炷香。起来时，把错处一条条说给我听。');
+                n('香炉里青烟笔直。一炷香后，你腿麻得几乎站不稳，错处却背得一字不差。');
+                say('沈砚', '嗯。跪得直，说得清。这份功课，比十遍抄律都不亏。');
+                eff({ obedience: 3, discipline: 1, trust: 1 });
+                S.flags.askSeed = true;
+            } }
+        ]; },
+        free: [
+            { re: /萤火/, run: function () {
+                say('沈砚', '罚没受完，后山不许去。');
+                n('顿了顿，他又补了半句——');
+                say('沈砚', '……受完再说。');
+                eff({ emotion: 2 });
+            } },
+            { re: /跑|逃/, run: function () {
+                say('沈砚', '往哪儿跑？罚单已经落在册上，跑到天边也记在你名下。');
+                eff({ resistance: 2 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景2：戒尺受罚 ---------- */
+    s2: {
+        need: 3, next: 's3',
+        canAdvance: function () { return !(S.flags.reportPending && !S.flags.reported); },
+        nextLabel: '⏳ 未时 · 前往藏书阁抄律',
+        enter: function () {
+            S.time = '午时'; S.loc = '戒律堂·静室';
+            hd('【午时 · 戒律堂 · 静室】');
+            line('静室里茶香已散，只余松墨与旧木的气息。沈砚从案头立架上取下一柄戒尺——乌木为身，铜箍为界，边角被岁月磨得温润，却自有一股不容轻慢的分量。');
+            say('沈砚', '戒律堂的规矩：戒尺打手，不打别处；打前报数，打后谢训。迟到一下，翻墙一下，毁篱一下——三下，你自己报。');
+            n('他把戒尺横放在案上，推到你面前。窗外蝉声正盛，外门弟子阿巳抱着记录板，在门口把脖子伸得老长。');
+        },
+        choices: function () { return [
+            { t: '主动伸手，自报三下', run: function () {
+                line('你把手伸平搁在案上，闭眼报数：“一下——迟到。两下——翻墙。三下——毁篱。”');
+                n('戒尺落下，声脆而利。三下打完，手心火辣辣，心里反倒松快了——账清了。');
+                say('沈砚', '忍得住。比翻墙的胆气不差。');
+                eff({ obedience: 3, discipline: 2, trust: 2 });
+            } },
+            { t: '磨磨蹭蹭，迟迟不伸手', run: function () {
+                line('你把手抬起来又放下，放下又抬起来，像只够不着鱼的大鹅。');
+                say('沈砚', '拖得越久，打得越疼。手，伸出来。');
+                n('最后一记打得比前两记沉。你嘶了一声，他眉头也皱了一下，却没停。');
+                eff({ discipline: 2, violation: 1 });
+                S.flags.reportPending = true;
+            } },
+            { t: '请教戒尺的规矩来历', run: function () {
+                say('沈砚', '这柄尺，传了三代。尺身刻的不是花纹，是历代领过它的弟子名录。');
+                n('他指给你看铜箍上一列小字，其中有个名字，笔画与他如出一辙。');
+                say('沈砚', '我也领过。所以我知道——它打的是手，记的是心。');
+                n('你盯着那列名字看了很久，手心还没挨打，先重重一跳。');
+                eff({ emotion: 3, favor: 1, trust: 1 });
+                S.flags.learnedHerb = true;
+            } },
+            { t: '挨到第二下就缩手', special: true, run: function () {
+                n('第二下落下，你疼得一缩手。');
+                say('沈砚', '缩手，加一下。伸回去。');
+                n('你认命地伸回去。第三下、第四下，比先前的都沉。');
+                eff({ violation: 2, discipline: 3, resistance: 1 });
+                S.flags.reportPending = true;
+            } },
+            { t: '和阿巳搭话', run: function () {
+                n('你冲门口的阿巳招手。阿巳左右看看，凑过来压低嗓子。');
+                say('阿巳', '木哥，首座昨夜把这柄尺在灯下擦了又擦，翻来覆去看了半宿——像是下不去手。');
+                n('你一愣。');
+                say('沈砚', '阿巳。你的花，蔫了。');
+                n('阿巳一溜烟跑了，只剩你盯着案上那柄尺，琢磨“下不去手”四个字。');
+                eff({ emotion: 3 });
+                S.flags.knowWatch = true;
+            } },
+            { t: '主动汇报今日犯的错', if: function () { return S.flags.reportPending && !S.flags.reported; }, run: function () {
+                line('你把拖延（或缩手）的事一五一十报了。');
+                say('沈砚', '记下了。自己报的，照例减一等。');
+                eff({ trust: 4, obedience: 2, violation: -1 });
+                S.flags.reported = true;
+            } },
+            { t: '揣着明白装糊涂', if: function () { return S.flags.reportPending && !S.flags.reported; }, special: true, run: function () {
+                n('你决定只字不提。');
+                n('尺声停了，他忽然开口——');
+                say('沈砚', '午时的汇报呢？');
+                n('你头皮发麻。原来午时汇报，是真的要汇报。');
+                eff({ trust: -3, violation: 3, discipline: 2 });
+                S.flags.reported = true;
+            } }
+        ]; },
+        free: [
+            { re: /萤火/, run: function () {
+                n('他执尺的手一顿。');
+                say('沈砚', '领完罚，销了账，若你还惦记——');
+                n('他没说完，只把戒尺往你面前推近半寸。');
+                eff({ emotion: 2 });
+                S.flags.promiseHint = true;
+            } },
+            { re: /怕疼|手疼|疼/, run: function () {
+                say('沈砚', '怕疼，就记住这份疼。下次翻墙之前，先想想手心。');
+                eff({ obedience: 1 });
+            } },
+            { re: /谢谢|多谢/, run: function () {
+                n('他收尺的手没停。');
+                say('沈砚', '谢什么。账是你自己犯下的，罚清了，往后谁也别欠谁。');
+                n('顿了顿——');
+                say('沈砚', '手心红得厉害。回房擦点药膏，别沾凉水。');
+                eff({ favor: 1, emotion: 1 });
+            } },
+            { re: /为什么打手|为何打手|打手心/, run: function () {
+                n('他收尺入袖，语气平直。');
+                say('沈砚', '翻墙用手，毁篱用手。惹祸的根苗是手，戒尺便只认手。');
+                n('答得很快，快得像早就备好了这句话。');
+                eff({ discipline: 1, emotion: 1 });
+                S.flags.knowWatch = true;
+            } }
+        ]
+    },
+
+    /* ---------- 场景3：藏书阁罚抄 ---------- */
+    s3: {
+        need: 3, next: 's4',
+        nextLabel: '⏳ 戌时 · 夜谈',
+        enter: function () {
+            S.time = '未时'; S.loc = '藏书阁';
+            hd('【未时 · 藏书阁】');
+            line('藏书阁里静得能听见笔尖沙沙。案上《宗门律令·晨昏篇》摊开，砚台里的墨还温着。沈砚坐在三步外的案后批文书，偶尔抬眼看你一下，像给你的笔速计时。');
+            say('沈砚', '抄律不比罚站。手上有活，心里就容易静。抄你的，我批我的，谁也不碍着谁。');
+        },
+        choices: function () { return [
+            { t: '认认真真抄写', run: function () {
+                line('一遍，两遍。写到第三遍，“晨昏定省，各诵清心咒一遍”这句话已经不用看原文了。');
+                n('手腕发酸，心里却奇异地静下来——原来静下来做事，是这种感觉。');
+                eff({ obedience: 4, trust: 2 });
+            } },
+            { t: '偷偷画小人（画沈砚）', special: true, run: function () {
+                line('抄着抄着，笔尖拐了个弯，纸上多了个吹胡子瞪眼的小人——道袍，玉简，眉眼有三分像案后那位。');
+                n('你越画越入神，没察觉沈砚已经立在你身后。');
+                n('他伸手，把纸抽走了。');
+                say('沈砚', '……耳朵画大了。');
+                n('你：“……”');
+                say('沈砚', '罚抄照旧。画，充公。');
+                n('他把纸折好，收进了袖中。');
+                eff({ favor: -1, discipline: 2, emotion: 2 });
+                S.flags.drewPortrait = true;
+            } },
+            { t: '打瞌睡', run: function () {
+                if (S.trust >= 40) {
+                    n('你伏在案上睡着了。半梦半醒间，一件带着松墨香的外袍轻轻搭上你的肩。');
+                    say('沈砚', '睡一刻。一刻后我叫你。');
+                    eff({ emotion: 3, favor: 2 });
+                } else {
+                    n('你头一点一点，笔尖在纸上拖出一条歪线。');
+                    say('沈砚', '醒醒。抄不完，今夜别想睡。');
+                    eff({ violation: 1, discipline: 3 });
+                }
+            } },
+            { t: '问：律令是防人，还是护人？', run: function () {
+                n('批文书的手停了。');
+                say('沈砚', '年少时，我也问过掌门这句话。');
+                n('他起身从架上取下一册旧律，翻到扉页——上面是一行小字：律者，界也。');
+                say('沈砚', '界内是坦途，界外是深渊。律令不防人，防的是人心里的那一句“就一次”。');
+                n('你盯着那行小字，看了很久。');
+                eff({ trust: 3, emotion: 4 });
+                S.flags.askedLaw = true;
+            } },
+            { t: '借口磨墨，磨慢一点', run: function () {
+                n('你磨墨磨得极其艺术，一圈又一圈，墨都磨稠了，字没写几个。');
+                say('沈砚', '墨够了。手痒就多抄一遍。');
+                eff({ discipline: 2 });
+            } }
+        ]; },
+        free: [
+            { re: /萤火/, run: function () {
+                n('他笔尖一顿。');
+                say('沈砚', '圃补活那日，后山的萤火也该起了。');
+                n('他居然接了这个话头。你写字的手一抖，一滴墨落在“省”字上。');
+                eff({ emotion: 3 });
+                S.flags.promiseFirefly = true;
+            } },
+            { re: /画|小人|耳朵/, run: function () {
+                if (S.flags.drewPortrait) {
+                    say('沈砚', '耳朵画大了这件事，你自己知道就好。');
+                    eff({ emotion: 1 });
+                } else {
+                    say('沈砚', '抄律。别的事，抄完再说。');
+                }
+            } },
+            { re: /手酸|手腕|胳膊/, run: function () {
+                say('沈砚', '停下来，甩一甩腕子，接着抄。');
+                n('他居然真的让你歇。你甩腕子的时候，他顺手把你歪了的纸镇正了。');
+                eff({ favor: 1, obedience: 1 });
+            } },
+            { re: /跑|逃|溜/, run: function () {
+                say('沈砚', '藏书阁的窗户很高，门槛很稳。坐下。');
+                eff({ resistance: 1 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景4：夜谈 ---------- */
+    s4: {
+        need: 1, next: 's5',
+        nextLabel: '⏳ 第4日 · 晨',
+        enter: function () {
+            S.time = '戌时'; S.loc = '戒律堂·静室';
+            hd('【戌时 · 戒律堂 · 静室】');
+            line('晚课散了，静室里只点了一盏青灯。沈砚把最后一遍抄律收走，却没有说“回去歇着”，反而给你斟了盏温茶。');
+            say('沈砚', '坐。今日的罚，结束了。现在不谈罚——我问你个事。');
+            say('沈砚', '你入宗门一年，犯戒十七次。我翻过你的戒律册：偷溜后山九次，夜不归舍五次，顶撞师长三次。若木，你为什么总犯戒？');
+            n('灯花轻轻爆了一声。你忽然意识到，这是他第一次问“为什么”，而不是“错在哪”。');
+        },
+        choices: function () { return [
+            { t: '说实话：就是好奇，憋不住', run: function () {
+                n('你捏着茶盏，低声道：“后山雾散的那一瞬、萤火起来的时候、灵鼠冬眠的窝……我就是想知道。”');
+                n('他静了片刻。');
+                say('沈砚', '想知道，不是罪。不择手段地想知道，才是。');
+                n('他把戒律册翻到新的一页，提笔写了几行，推给你看——“每月朔日，随我巡山一次。”');
+                say('沈砚', '往后你想知道什么，先问我。我带你去，不必翻墙。');
+                n('你鼻子忽然有点酸。');
+                eff({ trust: 5, emotion: 4, favor: 2 });
+                S.flags.patrol = true;
+            } },
+            { t: '嘴硬：为了多看师兄几眼', special: true, run: function () {
+                line('你把茶盏一搁，理直气壮：“犯戒要来戒律堂，来戒律堂就能见师兄。一举两得。”');
+                n('他的茶盏停在唇边，半晌没动。');
+                say('沈砚', '……满宗门的律令，到你嘴里成了这条。');
+                n('但你没漏看他眼底那一线没绷住的笑意。');
+                eff({ favor: 2, emotion: 2, trust: 1 });
+            } },
+            { t: '沉默，低头拨茶沫', run: function () {
+                n('你低头拨着茶沫，不说话。');
+                n('他没有逼你，只替你把灯芯剪亮了些。');
+                say('沈砚', '不想说，就先睡。明日的晨省，别再迟。');
+                n('临出门，他忽然补了一句——');
+                say('沈砚', '若木。后山夜路湿滑，下次翻墙，记得绕开东侧的青苔石。');
+                n('你猛地回头。他已经低头继续批文书了，仿佛什么都没说。');
+                eff({ emotion: 2, favor: 1 });
+            } },
+            { t: '反问：师兄为什么一直守着戒律堂？', run: function () {
+                n('他很久没说话，久到你以为他不会答了。');
+                say('沈砚', '十二年前，我师弟夜探后山，失足坠崖。');
+                n('灯花又爆了一声。');
+                n('他的声音很平，平得像一页被翻过千百遍的律书。');
+                say('沈砚', '从那以后，戒律堂的灯，就总得有个人守着。');
+                n('你握着茶盏，忽然明白了那本翻旧的《宗门律令》意味着什么。');
+                eff({ emotion: 5, trust: 3 });
+                S.flags.backstory = true;
+            } }
+        ]; },
+        free: [
+            { re: /萤火/, run: function () {
+                if (S.flags.promiseFirefly || S.flags.promiseHint) {
+                    say('沈砚', '圃活那日，记得起早。');
+                    n('他没有多解释一个字。但你知道，那个约，他记下了。');
+                    eff({ emotion: 2 });
+                    S.flags.promiseFirefly = true;
+                } else {
+                    say('沈砚', '萤火要看，得先过我这关。明日的晨省，别迟。');
+                    eff({ emotion: 1 });
+                }
+            } },
+            { re: /困|睡|歇/, run: function () {
+                say('沈砚', '去睡。青苔石，东侧。');
+                eff({ favor: 1 });
+            } },
+            { re: /巡山|朔日/, run: function () {
+                if (S.flags.patrol) {
+                    say('沈砚', '初一卯时，山门口见。迟到，作废。');
+                    eff({ obedience: 1 });
+                } else {
+                    say('沈砚', '等你能先守好晨省，再谈巡山。');
+                    eff({ discipline: 1 });
+                }
+            } }
+        ]
+    },
+
+    /* ---------- 场景5：第4日 · 结算 ---------- */
+    s5: {
+        need: 1, next: null,
+        enter: function () {
+            S.day = 4; S.time = '卯时末'; S.loc = '戒律堂·静室';
+            hd('【第4日 · 卯时末 · 戒律堂 · 静室】');
+            line('你推开静室的门，晨光正好落在案上——这是你入宗门以来，第一次提前到。');
+            n('他抬眼，眼底掠过一丝极淡的意外。');
+            say('沈砚', '今日倒早。');
+            n('他面前摆着两份文书：一份是你的戒律册，一份是新拟的契约条款。');
+        },
+        choices: function () {
+            if (S.ended) return [];
+            return [
+                { t: '“睡了个好觉，自然早。”', run: function () {
+                    say('沈砚', '嗯，精神倒是好。');
+                    eff({ favor: 1 });
+                    showEnding();
+                } },
+                { t: '来给师兄打下手', run: function () {
+                    say('沈砚', '正好。研墨。');
+                    n('你挽袖研墨，晨光把两个人的影子投在同一面墙上。');
+                    eff({ favor: 2, emotion: 2 });
+                    showEnding();
+                } },
+                { t: '“萤火的事，我还记着。”', if: function () { return S.flags.promiseFirefly; }, run: function () {
+                    n('他翻册的手，停了一停。');
+                    say('沈砚', '快了。再过几日，后山的萤火就该起了。');
+                    n('——他把你的念想，一直记在心上。你心口莫名一热。');
+                    eff({ emotion: 3 });
+                    showEnding();
+                } },
+                { t: '“昨夜的话……我都记得。”', if: function () { return S.flags.backstory; }, run: function () {
+                    say('沈砚', '记得就好。');
+                    n('他没有再说什么。但今日的茶，比往日的热。');
+                    eff({ trust: 2, emotion: 2 });
+                    showEnding();
+                } }
+            ];
+        },
+        free: []
+    }
+};
+
+/* ---------- 结局判定 ---------- */
+function showEnding() {
+    S.ended = true;
+    var f = S.flags;
+    var rank, title, body;
+    if (S.resistance >= 20 || S.violation >= 18) {
+        rank = 'C'; title = '戒尺与律令';
+        body = [
+            '第4日晨，你的戒律册上添了新的一页：禁足七日，戒尺十下，罚抄二十遍。',
+            '沈砚执尺的手很稳，每一下都不重，却每一下都让你记牢。',
+            '打完，他合上戒律册，只说了一句：“我守戒律堂的灯，不守成败。你哪天想明白了，自己来找我。”',
+            '你站在静室门口，忽然有点想哭——不是因为疼。'
+        ];
+    } else if (f.promiseFirefly && S.emotion >= 30) {
+        rank = 'S'; title = '萤火与晨露';
+        body = [
+            '第7日，最后一遍罚抄销了账，戒尺之罚也早已领完。你难得清闲，蹲在戒律堂廊下看檐角的铜铃，像个守着糖罐的孩子。',
+            '当夜，沈砚果真带你上了后山。没有翻墙——走正门，月白道袍，袖中一盏昏灯。',
+            '萤火漫起来的时候，他坐在你身侧半步的地方，声音很轻：“记住了？想知道什么，先问我。”',
+            '你点头。山风把萤火吹得漫天都是。你忽然觉得，守着界内，也能看见最亮的光。'
+        ];
+    } else if (S.trust >= 45 && S.obedience >= 40 && S.violation <= 10) {
+        rank = 'A'; title = '玉不琢 · 不成器';
+        body = [
+            '第4日，你的午时汇报按时交了，罚抄十遍一字不差，戒尺之罚也领得干脆利落。',
+            '沈砚在戒律册的新一页写下四个字：戒，渐明。',
+            '“玉不琢，不成器。”他把册子递给你，“往后这册，你自己记。我抽查。”',
+            '你接过册子，第一次觉得，罚也可以是一种信任。'
+        ];
+    } else {
+        rank = 'B'; title = '来日方长';
+        body = [
+            '第4日，晨省。你提前一刻钟到了，他也是。',
+            '新的契约条款写在纸上，一式两份：晨昏定省，午时汇报，戒尺与罚抄并行——末尾多了一行小字：“朔日，随巡。”',
+            '“签不签？”沈砚把笔递给你。',
+            '你签了。有些规矩立下的时候，人就悄悄留在了规矩里。来日方长。'
+        ];
+    }
+    var stats = [
+        ['好感度', S.favor], ['信任度', S.trust], ['违规点', S.violation], ['特权点', S.privilege],
+        ['管教强度', S.discipline], ['情感投入', S.emotion], ['服从度', S.obedience], ['反抗度', S.resistance]
+    ];
+    var card = document.createElement('div');
+    card.className = 'ending-card';
+    card.innerHTML =
+        '<h2>📖 结局 · ' + title + '</h2>' +
+        '<div class="rating">最终评价：<span class="rating-badge r-' + rank + '">' + rank + '</span></div>' +
+        body.map(function (b) { return '<p>' + b + '</p>'; }).join('') +
+        '<div class="end-stats">' + stats.map(function (s) { return '<div>' + s[0] + '：<b>' + s[1] + '</b></div>'; }).join('') + '</div>';
+    story.appendChild(card);
+    n('【通关】你达成了结局「' + title + '」。想看看别的走向？重新开始，换一种活法。');
+    actionArea.innerHTML = '';
+    addRestart();
+    freeInput.disabled = true;
+    document.getElementById('freeSubmit').disabled = true;
+    renderStatus();
+    save();
+    story.scrollTop = story.scrollHeight;
+}
+
+/* ---------- AI 引擎（可选接入 OpenAI 兼容接口；失败自动回落本地引擎） ---------- */
+var AI_FLAG_WHITELIST = ['gardenPressed', 'fullHonest', 'gardenAdmitted', 'busted', 'askSeed', 'reportPending', 'reported', 'learnedHerb', 'knowWatch', 'promiseHint', 'drewPortrait', 'askedLaw', 'promiseFirefly', 'backstory', 'patrol', 'confined', 'snack'];
+var AI = { cfg: { enabled: false, scopeAll: false, endpoint: '', model: '', key: '', effort: 'low', strict: 2 } };
+var STRICT_NAMES = { 1: '温润宽和', 2: '标准师门', 3: '严厉管教', 4: '铁面严苛' };
+var STRICT_DESC = {
+    1: '温润宽和——循循善诱，小过多以劝导、做事代替责罚，容易被求饶打动。',
+    2: '标准师门——温润如玉但底线分明，罚则与过错相称。',
+    3: '严厉管教——规矩执行不打折扣，再犯加倍罚，对嬉闹顶嘴反应冷硬。',
+    4: '铁面严苛——公事公办近乎无情，小过重罚、求饶无用，唯认错补过可换半分缓和。'
+};
+var STRICT_SWITCH_EFFECTS = { 1: { discipline: -10, favor: 2 }, 2: {}, 3: { discipline: 10, favor: -2 }, 4: { discipline: 20, favor: -5, emotion: -2 } };
+var STRICT_BLOCKS = {
+    1: '【沈砚性格·当前档位：温润宽和】沈砚此刻心境宽和：语气格外温软，多以讲道理、引典故的方式教诲；小过多以抄写少量经文、短时跪省或口头训诫代替责罚，戒尺能免则免；若木求饶时容易心软，最多板起脸三分；effects 中 favor/emotion 更易上涨，violation/discipline 增幅宜小。',
+    2: '【沈砚性格·当前档位：标准师门】沈砚温润如玉但底线分明：平时语气温和，提到欺瞒偷盗则声冷意沉；罚则与过错相称，以戒尺与罚抄为主罚（二者同等优先），辅以跪省、禁足与汇报；求饶需先认错才可能有转圜。',
+    3: '【沈砚性格·当前档位：严厉管教】沈砚此刻格外严格：话少而沉，规矩执行不打折扣；同类再犯必加倍罚（罚抄翻倍、戒尺加重加数、跪省延长、禁足延长）；对嬉皮笑脸、顶嘴狡辩反应冷硬；effects 中 discipline/violation 增幅上调，favor 不易上涨；但罚后仍会点明错处与改法——严而不虐。',
+    4: '【沈砚性格·当前档位：铁面严苛】沈砚近乎铁面：公事公办，几乎不接玩笑话；小过也按律重罚，violation 增长快，戒尺与罚抄常见且常并施，跪省与禁足按例执行；求饶无用，唯有认错补过能换来半分缓和；effects 中 discipline/violation 显著上调，favor/emotion 几乎停滞；但罚必有据、绝不体罚成伤，若木真正改过时会有一句极淡的肯定。'
+};
+var aiBusy = false;
+
+function loadAI() {
+    try {
+        var c = JSON.parse(localStorage.getItem('xunjie2_ai_pub_v1') || '{}');
+        if (typeof c.enabled === 'boolean') AI.cfg.enabled = c.enabled;
+        if (typeof c.scopeAll === 'boolean') AI.cfg.scopeAll = c.scopeAll;
+        if (c.strict) AI.cfg.strict = Math.max(1, Math.min(4, parseInt(c.strict, 10) || 2));
+        if (typeof c.endpoint === 'string') AI.cfg.endpoint = c.endpoint;
+        if (typeof c.model === 'string') AI.cfg.model = c.model;
+        if (typeof c.key === 'string') AI.cfg.key = c.key;
+    } catch (e) {}
+}
+function aiUsable() { return AI.cfg.enabled && AI.cfg.endpoint && AI.cfg.key && AI.cfg.model; }
+/* ---------- 场景历史（跨重开持久化，防止新场景与经历过的重合）与 AI 生成选项 ---------- */
+var ARC_HIST_KEY = 'xunjie2_arc_hist_v1';
+var AUTHORED_ARCS = ['晨省迟到·静室问询训诫', '宣判受罚·戒尺与罚抄', '藏书阁罚抄律令', '夜谈·沈砚守灯旧事', '第四日结算·抉择去向'];
+function loadArcHist() {
+    try {
+        var h = JSON.parse(localStorage.getItem(ARC_HIST_KEY) || '[]');
+        if (Array.isArray(h)) return h.filter(function (x) { return typeof x === 'string' && x; }).slice(-12);
+    } catch (e) {}
+    return [];
+}
+function pushArc(brief) {
+    if (!brief) return;
+    var h = loadArcHist();
+    if (!h.length) h = AUTHORED_ARCS.slice();
+    h.push(String(brief).slice(0, 60));
+    if (h.length > 12) h = h.slice(-12);
+    try { localStorage.setItem(ARC_HIST_KEY, JSON.stringify(h)); } catch (e) {}
+}
+var lastAIChoices = [];
+function setAIChoices(list) { lastAIChoices = list.slice(); S.aiChoices = lastAIChoices.slice(); }
+function aiChoiceButtons(list) {
+    return list.map(function (t) { return { t: t, run: function () { fallback(); } }; });
+}
+/* AI 全新开局占位场景：仅供存档恢复校验与渲染兜底 */
+SCENES.aiOpen = { need: 9999, enter: function () {}, choices: function () { return []; } };
+/* AI 全新开局：重开时生成一个从未经历过的开局场景（与 past_arcs 明显不同） */
+function aiFreshOpening() {
+    aiBusy = true;
+    hd('【AI 全新开局】');
+    var think = el('narration', '正在为你生成一个从未经历过的开局场景……');
+    callAI('', { newOpening: true }).then(function (res) {
+        think.remove();
+        if (res.new_day) S.day = Math.max(1, Math.min(9999, parseInt(res.new_day, 10) || S.day));
+        if (res.new_time) S.time = String(res.new_time).slice(0, 12);
+        if (res.new_location) S.loc = String(res.new_location).slice(0, 24);
+        S.scene = 'aiOpen'; S.aiArc = true; S.actions = 0;
+        res.narration.forEach(function (t) { line(t); });
+        res.dialogues.forEach(function (d) { if (d.who === '旁白') n(d.text); else say(d.who || '沈砚', d.text); });
+        if (!res.narration.length && !res.dialogues.length) line('（晨雾未散，戒律堂的新一天开始了。）');
+        eff(res.effects);
+        res.flags_add.forEach(function (f) { S.flags[f] = true; });
+        if (res.choices.length) setAIChoices(res.choices); else { lastAIChoices = []; S.aiChoices = []; }
+        pushArc((res.new_location || S.loc || '戒律堂') + '：' + (res.narration[0] || '').slice(0, 40));
+        aiBusy = false;
+        renderStatus();
+        renderChoices(lastAIChoices.length ? aiChoiceButtons(lastAIChoices) : aiModeChoices());
+        save();
+        story.scrollTop = story.scrollHeight;
+        freeInput.disabled = false;
+        document.getElementById('freeSubmit').disabled = false;
+    }).catch(function () {
+        think.remove();
+        toast('AI 生成开局失败，已回落本地开局剧本');
+        aiBusy = false;
+        startScene('s1');
+    });
+}
+/* AI自由剧情模式的通用行动建议（剧情不限长度，由AI接管推进） */
+function aiModeChoices() {
+    return [
+        { t: '主动认错，态度诚恳', run: function () { fallback(); } },
+        { t: '撒娇求饶，耍赖打岔', run: function () { fallback(); } },
+        { t: '找话题与师兄闲聊', run: function () { fallback(); } },
+        { t: '沉默观察他的反应', run: function () { fallback(); } },
+        { t: '主动请缨领一份差事', run: function () { fallback(); } }
+    ];
+}
+function syncAIUI() {
+    document.getElementById('aiEnabled').checked = AI.cfg.enabled;
+    document.getElementById('aiScopeAll').checked = AI.cfg.scopeAll;
+    document.getElementById('aiEndpoint').value = AI.cfg.endpoint || '';
+    document.getElementById('aiKey').value = AI.cfg.key || '';
+    document.getElementById('aiModel').value = AI.cfg.model || '';
+    document.querySelectorAll('#aiStrictPills .ai-pill').forEach(function (p) {
+        p.classList.toggle('active', parseInt(p.getAttribute('data-lv'), 10) === AI.cfg.strict);
+    });
+    document.getElementById('aiStrictDesc').textContent = STRICT_DESC[AI.cfg.strict];
+    var ok = aiUsable();
+    var missing = !AI.cfg.endpoint || !AI.cfg.key || !AI.cfg.model;
+    document.getElementById('aiStatus').textContent = ok
+        ? ('AI 状态：已连接 · ' + AI.cfg.model + ' · 沈砚：' + STRICT_NAMES[AI.cfg.strict])
+        : (missing ? 'AI 状态：未连接 API · 请填写 API 地址 / Key / 模型后点「保存并连接」'
+                   : 'AI 状态：配置已存 · 勾选上方「启用 AI」即可开玩');
+    document.getElementById('aiHintState').textContent = ok
+        ? ('当前由你连接的 AI（' + AI.cfg.model + '·' + STRICT_NAMES[AI.cfg.strict] + '档）实时响应你的每一次输入。')
+        : '当前由本地剧本引擎响应；连接 API 并启用 AI 后，沈砚将真正听懂你的每一句话。';
+}
+function setStrict(lv) {
+    lv = Math.max(1, Math.min(4, parseInt(lv, 10) || 2));
+    if (AI.cfg.strict === lv) return;
+    AI.cfg.strict = lv;
+    if (aiUsable()) {
+        var fx = STRICT_SWITCH_EFFECTS[lv];
+        if (fx) eff(fx);
+        toast('⚖️ 沈砚严厉程度切换为「' + STRICT_NAMES[lv] + '」，后续剧情按此基调推进');
+    } else {
+        toast('严厉程度已记录为「' + STRICT_NAMES[lv] + '」，启用 AI 后生效');
+    }
+    saveAIToggles();
+    syncAIUI();
+}
+function saveAIToggles() {
+    AI.cfg.enabled = document.getElementById('aiEnabled').checked;
+    AI.cfg.scopeAll = document.getElementById('aiScopeAll').checked;
+    AI.cfg.endpoint = document.getElementById('aiEndpoint').value.trim();
+    AI.cfg.key = document.getElementById('aiKey').value.trim();
+    AI.cfg.model = document.getElementById('aiModel').value.trim();
+    localStorage.setItem('xunjie2_ai_pub_v1', JSON.stringify({ enabled: AI.cfg.enabled, scopeAll: AI.cfg.scopeAll, strict: AI.cfg.strict, endpoint: AI.cfg.endpoint, model: AI.cfg.model, key: AI.cfg.key }));
+    syncAIUI();
+}
+function buildAISystemPrompt(opts) {
+    var openArc = opts && opts.openArc;
+    var strict = STRICT_BLOCKS[AI.cfg.strict] || STRICT_BLOCKS[2];
+    var base = '你是单机文字游戏《训戒男模拟器2.0·仙侠篇》的剧情引擎，扮演戒律堂首座·大师兄沈砚，并无限推进剧情。' +
+        '【世界观】修仙宗门·戒律堂。玩家扮演跳脱好动、好奇心重的编外弟子若木（男）；沈砚温润如玉、底线分明，对欺瞒与偷盗零容忍。师门罚则体系固定为：戒尺与罚抄律令为两大主罚（二者同等优先、按过错轻重选用或并施），辅以跪省、禁足与午时汇报制度；不使用劳作类惩罚（禁止以洒扫、杂役、耕种等作为惩罚）（健康向，无血腥暴力、无任何亲密越界内容，二人仅为师兄弟情谊）。配角如外门弟子阿巳等可自然登场。' +
+        strict +
+        '【主题约束·必须遵守】全部剧情必须始终围绕“训诫/管教”主题展开：剧情围绕若木的各类过犯（晨省迟到、夜不归舍、私闯禁地、偷懒懈怠、顶撞师长、损毁公物等）与师门规矩、罚则及训导对话展开。罚则只允许使用：戒尺（打手心，打前报数、打后谢训）、罚抄律令——二者同等优先为主罚；跪省（跪于静室反省思过，时长以一炷香或半个时辰计，常与罚抄、戒尺搭配）、禁足、午时汇报为辅。严禁出现劳作类惩罚（洒扫、杂役、耕种、劈柴挑水等一律不得作为惩罚手段）。即使翻篇进入新剧情，也必须由新的过犯、戒律训导或训诫后的成长与考验引出，不得偏离到无关冒险、情爱或争斗。' +
+        '【硬性要求】1) 必须紧扣玩家行动（player_action）做针对性回应，禁止答非所问、禁止无视玩家输入自说自话；2) 与 story_recent 中的既有内容措辞、句式不重复，每次换新细节、新角度，确保多样性；3) 文风古风细腻，沈砚台词温和而有分量，可带一点冷幽默；4) effects 的键只能取：favor,trust,violation,privilege,discipline,emotion,obedience,resistance（禁止自创键名），只填确实发生变动的项，单项范围-12~+12，violation/discipline/resistance为坏值，favor/trust/obedience/emotion为好值，privilege为消耗性资源。' +
+        '【过错记忆·必须遵守】payload.past_violations 是若木过往过错的记录（标签:次数）。每次回应必须评估 player_action 是否构成过错：若构成，在输出JSON顶层 violation 字段填1~6字过错标签（如：迟到、顶嘴、夜不归舍、私闯禁地、偷懒、撒谎、损毁公物），标签必须与 past_violations 中同类过错用词一致，便于对账；若同时涉及多项过错，以最主导的一项作标签，不拼长串；不构成则填空字符串""。若该标签已在 past_violations 中出现（次数≥1），即为重复犯错：必须在 narration 或 dialogues 中明确翻旧账（点明这是第N次、提及上次的教训或当时训话的大意），沈砚情绪明显加重（更失望、更严厉或一声更深沉的叹息），effects 中 violation 与 discipline 加大、favor 与 trust 降得更多；翻旧账的严厉程度随沈砚当前性格档位加深。若为初犯则正常按罚则处置；严禁凭空捏造 past_violations 中不存在的旧账，也不许对不构成过错的行为强行记账。' +
+        '【场景轮换·必须遵守】payload.past_arcs 是本局已经历过的剧情梗概列表（含历次重开）。任何新剧情（翻篇后的新开场、新事件）在场景地点、过错类型、事件内容上都必须与 past_arcs 中任意一条明显不同，禁止重复同类桥段（如已发生过"晨省迟到"，就不得再以"迟到"作为新剧情核心；同一地点不宜连续两次作为主场景）；next_arc_hint 与 choices 也要体现这种差异。' +
+        '【剧情推进·两阶段翻篇】每段剧情不设行动次数上限，节奏由你把握。当本段剧情自然收束时，设 advance=true，本次回应【只负责收束旧剧情】：narration 与 dialogues 要把此事的了结、人物当下的状态交代清楚（narration 不超过2段），绝不在本次回应中展开任何新剧情或新事件；transition 字段写一句过渡语（如：又过了几日 / 此番过后若木难得消停了几日 / 一晃便是三日后）；new_day/new_time/new_location 给出翻篇后的日期时辰与地点；next_arc_hint 用一句话概括新剧情的走向（如：若木领了新的差事 / 又犯新错 / 宗门试炼将至）。系统收到 advance=true 后会另行单独请求新剧情开场——旧剧情到本次回应为止彻底结束，新旧剧情互不影响、互不纠缠。若本段剧情尚未收束，advance 保持 false，不提供 transition/new_*/next_arc_hint 字段。' +
+        '【输出】只输出一个JSON对象，不要任何解释、前言或代码块标记。格式：' +
+        '{"narration":["旁白段落1","旁白段落2"],"dialogues":[{"who":"沈砚","text":"台词"}],"effects":{"trust":2},"flags_add":[],"choices":["贴合当前剧情的选项1","选项2","选项3"],"violation":"","advance":false,"transition":"","new_day":0,"new_time":"","new_location":"","next_arc_hint":""}。' +
+        'narration 1-3段，每段40~90字；dialogues 0-3句，who 可用：沈砚/若木/阿巳/旁白；flags_add 仅限以下：gardenPressed,fullHonest,gardenAdmitted,busted,askSeed,reportPending,reported,learnedHerb,knowWatch,promiseHint,drewPortrait,askedLaw,promiseFirefly,backstory,patrol,confined,snack。' +
+        'choices：本轮回应结束后呈现给玩家的3~5个行动选项，每项8~20字，为玩家视角的行动描述（动词开头，如"主动认错领罚"/"辩解晨雾误事"/"偷瞄他的罚册"），须紧扣当前剧情、互不相同且倾向多样（顺从/辩解/试探/求助/搅事等），禁止与 past_arcs 已有剧情重复。';
+    if (openArc) {
+        base += '【当前任务·开启新剧情】玩家消息中 task=open_new_arc：旧剧情已在过渡句之前彻底收束完毕，你只需输出新剧情的开场——依 arc_hint 与时间地点展开一段全新事件（narration 1-2段直接进入新剧情，dialogues 0-2句引入人物），advance 必须为 false，不提供 transition/new_*/next_arc_hint 字段；严禁复述或回顾旧剧情，新剧情从你的这段开场起独立展开。依新事件输出3~5个互不相同的choices行动选项，新剧情事件必须与 past_arcs 中任何一条明显不同。本次仅为开场铺垫，violation 字段必须为空字符串。';
+    }
+    else if (opts && opts.newOpening) {
+        base += '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。若木在一恰当的日子因一项过错或境况与沈砚相遇并被训导：场景地点、时辰、过错类型都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨省迟到训诫、戒尺宣判受罚、藏书阁罚抄律令、夜谈沈砚守灯旧事、第四日结算抉择等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入沈砚的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。';
+    }
+    return base;
+}
+function buildAIUserMsg(userAction, opts) {
+    var recent = Array.prototype.slice.call(story.children, -8).map(function (e) {
+        return e.innerText.replace(/\s+/g, ' ');
+    }).join(' | ').slice(-1400);
+    var names = { s1: '晨省问询', s1b: '宣判', s2: '戒尺受罚', s3: '藏书阁罚抄', s4: '夜谈', s5: '第四日结算' };
+    var flags = Object.keys(S.flags).filter(function (k) { return S.flags[k]; });
+    var payload = {
+        scene_id: S.scene,
+        scene_name: names[S.scene] || S.scene,
+        free_arc: S.aiArc ? '是：已进入AI自由剧情阶段，不必遵循原场景框架，按【剧情推进】规则无限续写' : '否：仍处于原场景，剧情自然收束后可翻篇',
+        time: '第' + S.day + '日 ' + S.time,
+        location: S.loc,
+        stats: { favor: S.favor, trust: S.trust, violation: S.violation, privilege: S.privilege, discipline: S.discipline, emotion: S.emotion, obedience: S.obedience, resistance: S.resistance },
+        flags: flags,
+        past_violations: (S.memory && S.memory.viol) ? S.memory.viol : {},
+        past_arcs: (opts && opts.pastArcs) ? opts.pastArcs : loadArcHist(),
+        story_recent: recent,
+        player_action: userAction
+    };
+    if (opts && opts.openArc) {
+        payload.task = 'open_new_arc';
+        payload.arc_hint = (opts.prev && opts.prev.next_arc_hint) || '';
+        payload.player_action = '（旧剧情已收束，请开启新剧情）';
+    }
+    if (opts && opts.newOpening) {
+        payload.task = 'new_opening';
+        payload.player_action = '（请生成全新开局场景）';
+    }
+    return JSON.stringify(payload);
+}
+function callAI(userAction, opts) {
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 45000) : null;
+    return fetch(AI.cfg.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.cfg.key },
+        body: JSON.stringify({
+            model: AI.cfg.model,
+            temperature: 1.0,
+            reasoning_effort: AI.cfg.effort || 'low',
+            stream: false,
+            messages: [
+                { role: 'system', content: buildAISystemPrompt(opts || {}) },
+                { role: 'user', content: buildAIUserMsg(userAction, opts) }
+            ]
+        }),
+        signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+        if (to) clearTimeout(to);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    }).then(function (data) {
+        var txt = data && data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+        return parseAIJSON(txt);
+    });
+}
+function parseAIJSON(txt) {
+    txt = String(txt || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+    var a = txt.indexOf('{'), b = txt.lastIndexOf('}');
+    if (a < 0 || b <= a) throw new Error('AI 返回格式无法解析');
+    var o = JSON.parse(txt.slice(a, b + 1));
+    var res = { narration: [], dialogues: [], effects: {}, flags_add: [], choices: [], violation_tag: '', advance: false, transition: '', new_day: 0, new_time: '', new_location: '', next_arc_hint: '' };
+    if (Array.isArray(o.narration)) res.narration = o.narration.map(String).filter(Boolean);
+    else if (typeof o.narration === 'string' && o.narration) res.narration = o.narration.split(/\n+/).filter(Boolean);
+    if (Array.isArray(o.dialogues)) {
+        o.dialogues.forEach(function (d) {
+            if (!d) return;
+            if (typeof d === 'string') res.dialogues.push({ who: '沈砚', text: d });
+            else if (d.text) res.dialogues.push({ who: d.who || '沈砚', text: String(d.text) });
+        });
+    } else if (typeof o.dialogue === 'string' && o.dialogue) {
+        res.dialogues.push({ who: '沈砚', text: o.dialogue });
+    }
+    if (o.effects && typeof o.effects === 'object') {
+        Object.keys(o.effects).forEach(function (k) {
+            if (CLAMP[k]) {
+                var v = Number(o.effects[k]);
+                if (!isNaN(v)) res.effects[k] = Math.max(-12, Math.min(12, v));
+            }
+        });
+    }
+    if (Array.isArray(o.flags_add)) {
+        o.flags_add.forEach(function (f) { if (AI_FLAG_WHITELIST.indexOf(f) >= 0) res.flags_add.push(f); });
+    }
+    res.advance = !!o.advance;
+    res.transition = typeof o.transition === 'string' ? o.transition : '';
+    res.new_day = o.new_day ? Number(o.new_day) : 0;
+    res.new_time = typeof o.new_time === 'string' ? o.new_time : '';
+    res.new_location = typeof o.new_location === 'string' ? o.new_location : '';
+    res.next_arc_hint = typeof o.next_arc_hint === 'string' ? o.next_arc_hint : '';
+    res.violation_tag = typeof o.violation === 'string' ? o.violation.trim().slice(0, 12) : '';
+    if (Array.isArray(o.choices)) res.choices = o.choices.map(function (c) { return String(c).trim().slice(0, 40); }).filter(Boolean).slice(0, 5);
+    return res;
+}
+/* 过错记忆：violation 标签计数，存于 S.memory.viol（随存档持久化）；返回累计次数 */
+function recordViolation(tag) {
+    if (!S.memory || !S.memory.viol) S.memory = { viol: {}, loc: {} };
+    /* 归一化：新标签与已有标签互为包含（如“迟到顶嘴”含“迟到”）时合并到已有标签，保证同类过错计数一致 */
+    var key = tag, hitLen = 0;
+    Object.keys(S.memory.viol).forEach(function (k) {
+        if ((k.indexOf(tag) >= 0 || tag.indexOf(k) >= 0) && k.length > hitLen) { key = k; hitLen = k.length; }
+    });
+    var prev = S.memory.viol[key] || 0;
+    S.memory.viol[key] = prev + 1;
+    renderSide();
+    return prev + 1;
+}
+function applyAIResult(res) {
+    /* 先呈现本段（收束）内容，翻篇过渡句与时间地点更新放在其后，旧剧情到此为止 */
+    res.narration.forEach(function (t) { line(t); });
+    res.dialogues.forEach(function (d) {
+        if (d.who === '旁白') n(d.text); else say(d.who || '沈砚', d.text);
+    });
+    if (!res.narration.length && !res.dialogues.length) line('（沈砚静静看着你，目光深沉。）');
+    if (res.advance) {
+        S.aiArc = true;
+        S.actions = 0;
+        lastAIChoices = []; S.aiChoices = [];
+        if (res.transition) el('narration', '✦ ' + esc(res.transition));
+        if (res.new_day) S.day = Math.max(1, Math.min(9999, parseInt(res.new_day, 10) || S.day));
+        if (res.new_time) S.time = String(res.new_time).slice(0, 12);
+        if (res.new_location) S.loc = String(res.new_location).slice(0, 24);
+        el('arc-divider', '');
+    }
+    eff(res.effects);
+    res.flags_add.forEach(function (f) { S.flags[f] = true; });
+    /* 过错记忆：记录本次过错标签；重复犯错时引擎兜底加重反应（AI剧情层面已按系统提示翻旧账） */
+    if (res.violation_tag) {
+        var times = recordViolation(res.violation_tag);
+        if (times >= 2) {
+            eff({ discipline: 4, violation: 3, trust: -3 });
+            toast('⚠ 旧账：这已是若木第' + times + '次犯“' + res.violation_tag + '”');
+        }
+    }
+    /* AI接管选项：本轮回应结束后，按钮区由AI生成的行动选项接管 */
+    if (!res.advance && res.choices.length) setAIChoices(res.choices);
+}
+function aiAct(userAction) {
+    if (aiBusy || S.ended) return;
+    aiBusy = true;
+    userMsg(userAction);
+    Array.prototype.forEach.call(actionArea.children, function (b) { b.disabled = true; });
+    freeInput.disabled = true;
+    document.getElementById('freeSubmit').disabled = true;
+    var think = el('narration', '沈砚正在斟酌言辞……');
+    callAI(userAction).then(function (res) {
+        think.remove();
+        applyAIResult(res);
+        if (res.advance) {
+            /* 旧剧情已收束并用过渡句隔开 → 第二阶段：单独请求新剧情开场，新旧互不纠缠 */
+            openNewArc(res);
+            return;
+        }
+        finishAIAct();
+    }).catch(function (err) {
+        think.remove();
+        toast('AI 调用失败（' + ((err && err.message) || err) + '），已回落本地剧本');
+        var hit = matchFree(userAction);
+        if (hit) runIntent(hit, userAction); else fallback();
+        finishAIAct();
+    });
+}
+function openNewArc(prevRes) {
+    /* 场景轮换：请求前先取历史（不含本段），再把本段梗概入账，保证后续剧情不与此处重合 */
+    var pastArcs = loadArcHist();
+    if (prevRes.next_arc_hint) pushArc(prevRes.next_arc_hint);
+    var think2 = el('narration', '——新的一段剧情，正在展开……');
+    callAI('', { openArc: true, prev: prevRes, pastArcs: pastArcs }).then(function (res2) {
+        think2.remove();
+        res2.narration.forEach(function (t) { line(t); });
+        res2.dialogues.forEach(function (d) {
+            if (d.who === '旁白') n(d.text); else say(d.who || '沈砚', d.text);
+        });
+        if (!res2.narration.length && !res2.dialogues.length) line('（新的一段日子，就这样开始了。）');
+        eff(res2.effects);
+        res2.flags_add.forEach(function (f) { S.flags[f] = true; });
+        if (res2.violation_tag) recordViolation(res2.violation_tag);
+        if (res2.choices.length) setAIChoices(res2.choices); else { lastAIChoices = []; S.aiChoices = []; }
+        finishAIAct();
+    }).catch(function () {
+        think2.remove();
+        line('（新的一段日子，就这样开始了。）');
+        finishAIAct();
+    });
+}
+function finishAIAct() {
+    aiBusy = false;
+    S.actions++;
+    var sc = SCENES[S.scene];
+    if (S.aiArc) {
+        /* AI自由剧情模式：不设行动次数限制，剧情收束与翻篇由AI两阶段完成；按钮区由AI生成的选项接管 */
+        renderChoices(lastAIChoices.length ? aiChoiceButtons(lastAIChoices) : aiModeChoices());
+    } else if (lastAIChoices.length && aiUsable()) {
+        /* AI接管选项（含原剧本场景内 scopeAll 模式） */
+        renderChoices(aiChoiceButtons(lastAIChoices));
+    } else {
+        renderChoices(sc.choices());
+        if (!aiUsable() && S.actions >= sc.need && sc.next && !S.ended) {
+            addAdvance(sc.nextLabel || '⏳ 时辰将至 · 继续', function () { startScene(sc.next); });
+            if (!sc.canAdvance || sc.canAdvance()) scheduleAutoAdvance(sc.next);
+        }
+    }
+    if (!S.ended) renderStatus();
+    save();
+    story.scrollTop = story.scrollHeight;
+    freeInput.disabled = false;
+    document.getElementById('freeSubmit').disabled = false;
+}
+function bindAIButtons() {
+    document.getElementById('aiEnabled').addEventListener('change', saveAIToggles);
+    document.getElementById('aiScopeAll').addEventListener('change', saveAIToggles);
+    ['aiEndpoint', 'aiKey', 'aiModel'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', saveAIToggles);
+    });
+    document.getElementById('aiSaveConn').onclick = function () {
+        saveAIToggles();
+        toast(aiUsable() ? '✅ API 连接已保存（' + AI.cfg.model + '）' : '⚠ 已保存，但 API 地址 / Key / 模型尚未填写完整');
+    };
+    document.querySelectorAll('#aiStrictPills .ai-pill').forEach(function (p) {
+        p.onclick = function () { setStrict(p.getAttribute('data-lv')); };
+    });
+    document.getElementById('btnAI').onclick = function () {
+        var c = document.getElementById('aiCard');
+        c.classList.remove('collapsed');
+        c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+}
+
+/* ---------- 自由输入处理 ---------- */
+function submitFree() {
+    if (S.ended) return;
+    var val = freeInput.value.trim();
+    freeInput.value = '';
+    if (!val) return;
+    if (val === '中止' || val === '安全词') {
+        userMsg(val);
+        n('【安全词“中止”已触发】当前场景安全跳过，时辰直接推进。');
+        clearAutoAdvance();
+        var nx = SCENES[S.scene].next;
+        if (nx) startScene(nx);
+        return;
+    }
+    if (aiUsable()) { aiAct(val); return; }
+    var hit = matchFree(val);
+    if (hit) { doAct(function () { runIntent(hit, val); }, true, val); return; }
+    doAct(fallback, true, val);
+}
+document.getElementById('freeSubmit').onclick = submitFree;
+freeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') submitFree(); });
+/* 重开：AI启用时清除存档并生成全新开局场景（场景历史跨重开记录，保证不与经历过的重合） */
+function doRestart() {
+    localStorage.removeItem(KEY);
+    if (aiUsable()) { try { localStorage.setItem('xunjie2_aiopen', '1'); } catch (e) {} }
+    location.reload();
+}
+document.getElementById('btnRestart').onclick = doRestart;
+document.getElementById('btnFresh').onclick = doRestart;
+
+/* ---------- 折叠交互（状态栏 / 信息卡：默认折叠，状态持久化） ---------- */
+var UIKEY = 'xunjie2_ui';
+function bindCollapses() {
+    var st = {};
+    try { st = JSON.parse(localStorage.getItem(UIKEY) || '{}'); } catch (e) {}
+    var sw = document.getElementById('statusWrap');
+    if (st.status !== undefined) sw.classList.toggle('collapsed', !!st.status);
+    document.getElementById('statusToggle').onclick = function () {
+        sw.classList.toggle('collapsed');
+        st.status = sw.classList.contains('collapsed');
+        localStorage.setItem(UIKEY, JSON.stringify(st));
+    };
+    document.querySelectorAll('.panel-card').forEach(function (card, i) {
+        var k = card.id === 'aiCard' ? 'aiCard' : 'card' + i;
+        if (st[k] !== undefined) card.classList.toggle('collapsed', !!st[k]);
+        else card.classList.add('collapsed');
+        var h = card.querySelector('h3');
+        if (h) h.onclick = function () {
+            card.classList.toggle('collapsed');
+            st[k] = card.classList.contains('collapsed');
+            localStorage.setItem(UIKEY, JSON.stringify(st));
+        };
+    });
+}
+
+/* ---------- 启动 / 恢复存档 ---------- */
+(function init() {
+    loadAI();
+    bindAIButtons();
+    bindCollapses();
+    var aiOpen = false;
+    try { if (localStorage.getItem('xunjie2_aiopen') === '1') { localStorage.removeItem('xunjie2_aiopen'); aiOpen = true; } } catch (e) {}
+    var restored = false;
+    try {
+        var raw = localStorage.getItem(KEY);
+        if (raw) {
+            var o = JSON.parse(raw);
+            if (o && o.S && o.S.scene && SCENES[o.S.scene]) {
+                S = o.S;
+                if (!S.memory || !S.memory.viol) S.memory = { viol: {}, loc: {} };
+                if (!Array.isArray(S.aiChoices)) S.aiChoices = [];
+                if (o.story) story.innerHTML = o.story;
+                restored = true;
+            }
+        }
+    } catch (e) {}
+    if (restored) {
+        document.getElementById('restoreBar').style.display = 'flex';
+        var sc = SCENES[S.scene];
+        renderStatus();
+        if (S.ended) {
+            addRestart();
+            freeInput.disabled = true;
+            document.getElementById('freeSubmit').disabled = true;
+        } else if (S.aiArc) {
+            renderChoices((S.aiChoices && S.aiChoices.length) ? aiChoiceButtons(S.aiChoices) : aiModeChoices());
+        } else {
+            renderChoices(sc.choices());
+            if (!aiUsable() && S.actions >= sc.need && sc.next) {
+                addAdvance(sc.nextLabel || '⏳ 时辰将至 · 继续', function () { startScene(sc.next); });
+                if (!sc.canAdvance || sc.canAdvance()) scheduleAutoAdvance(sc.next);
+            }
+        }
+        story.scrollTop = story.scrollHeight;
+    } else if (aiOpen && aiUsable()) {
+        aiFreshOpening();
+    } else {
+        startScene('s1');
+    }
+})();
+</script>
+</body>
+</html>
