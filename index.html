@@ -560,6 +560,30 @@
             background: #efe7d6; border: 1px dashed #b8a684; border-radius: 10px; padding: 6px 8px;
         }
         .ai-cost b { color: #a12b2b; }
+        /* 教程弹窗 / 测试连接 / 一键复制（公开版） */
+        .ai-btn-row { display: flex; gap: 8px; margin-top: 8px; }
+        .ai-btn-row .ai-save { width: auto; flex: 1; margin-top: 0; }
+        .ai-test-result { display: none; margin-top: 6px; font-size: 0.76rem; line-height: 1.6; padding: 6px 9px; border-radius: 10px; background: #efe7d6; border: 1px dashed #b8a684; color: #4a4234; }
+        .ai-test-result.busy { display: block; }
+        .ai-test-result.ok { display: block; color: #2d6a4f; border-color: #7fa88d; }
+        .ai-test-result.fail { display: block; color: #a12b2b; border-color: #c98f8f; }
+        .ai-test-result.warn { display: block; color: #b1560f; }
+        .modal-mask { display: none; position: fixed; inset: 0; background: rgba(20,16,10,0.55); z-index: 999; justify-content: center; align-items: center; padding: 16px; }
+        .modal-mask.show { display: flex; }
+        .modal-box { background: #f2efe6; border: 1px solid #b8aa8c; border-radius: 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); width: min(560px, 100%); max-height: 84vh; overflow-y: auto; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 3px double #a89b80; position: sticky; top: 0; background: #f2efe6; z-index: 1; }
+        .modal-head span { font-weight: 700; letter-spacing: 2px; color: #3f3a2e; }
+        .modal-head button { background: #e3dbcc; border: 1px solid #b3a283; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 0.85rem; color: #4a4234; }
+        .modal-body { padding: 14px 20px 18px; font-size: 0.88rem; color: #2b261e; line-height: 1.75; }
+        .modal-body h4 { margin: 12px 0 4px; font-size: 0.92rem; color: #3f3a2e; border-left: 4px solid #8b7a5c; padding-left: 8px; }
+        .modal-body h4:first-child { margin-top: 0; }
+        .modal-body ol { margin: 4px 0 6px 20px; }
+        .copy-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; background: #efe7d6; border: 1px dashed #b8a684; border-radius: 10px; padding: 5px 10px; }
+        .copy-txt { flex: 1; min-width: 0; word-break: break-all; font-size: 0.82rem; color: #2f2a1f; user-select: all; -webkit-user-select: all; }
+        .btn-copy { flex-shrink: 0; background: #8b7a5c; color: #f5f0e6; border: none; border-radius: 16px; padding: 3px 12px; font-size: 0.72rem; font-family: inherit; cursor: pointer; }
+        .btn-copy:hover { background: #75654a; }
+        .tut-faq { margin: 4px 0 0; padding-left: 18px; color: #4a4234; }
+        .tut-faq b { color: #a12b2b; }
         .toast {
             position: fixed;
             left: 50%;
@@ -649,16 +673,11 @@
                         <div class="ai-field"><label>API Key</label><input id="aiKey" type="password" placeholder="sk-……（仅存本地浏览器）" autocomplete="off"></div>
                         <div class="ai-field"><label>模型名称</label><input id="aiModel" type="text" placeholder="deepseek-v4-pro 或 deepseek-flash" autocomplete="off"></div>
                         <button id="aiSaveConn" class="ai-save">💾 保存并连接</button>
-                        <details class="ai-tutorial">
-                            <summary>❓ 接入教程（以 DeepSeek 为例，约3分钟）</summary>
-                            <ol>
-                                <li>打开 <b>platform.deepseek.com</b>，注册或登录账号；</li>
-                                <li>左侧菜单「<b>充值</b>」——新充 10 元即可畅玩数千轮；</li>
-                                <li>左侧菜单「<b>API keys</b>」→「创建 API key」→ 复制 <b>sk-</b> 开头的密钥（密钥只完整显示一次）；</li>
-                                <li>回到本页：API 地址填 <b>https://api.deepseek.com/v1/chat/completions</b>，API Key 粘贴密钥，模型填 <b>deepseek-v4-pro</b>（更便宜可选 <b>deepseek-flash</b>），点「💾 保存并连接」；</li>
-                                <li>勾选顶部「启用 AI 智能剧情」即可开玩。也兼容任意 OpenAI 兼容接口（硅基流动 / Moonshot / 通义等）：换成对应地址与模型名即可。</li>
-                            </ol>
-                        </details>
+                        <div class="ai-btn-row">
+                            <button id="aiTutBtn" class="ai-save">❓ 接入教程</button>
+                            <button id="aiTestBtn" class="ai-save">🔍 测试连接</button>
+                        </div>
+                        <div class="ai-test-result" id="aiTestResult"></div>
                         <div class="ai-cost">💰 每轮费用参考（DeepSeek 官方价）：每轮对话约消耗 <b>4~5K tokens</b>（系统提示约2K＋剧情上下文约1.5K＋回复约1K）。<b>deepseek-v4-pro</b> 约合 <b>¥0.01~0.05 / 轮</b>（闲时更低；剧情越长上下文越大）；<b>deepseek-flash</b> 约为前者的 1/4~1/5，即 <b>¥0.003~0.01 / 轮</b>。10 元余额通常可支撑 2000~8000 轮对话，实际以平台账单为准。</div>
                     </div>
                     <div class="ai-strict-label">⚖️ 沈砚严厉程度（选定后，后续剧情立即按此基调推进）：</div>
@@ -722,6 +741,40 @@
     <!-- 底部提示 -->
     <div class="footer-note">
         训戒模拟器2.0 · 单机网页版 · AI 可接入 · 本地引擎保底 · 所有情节均为虚构 · 输入“中止”可安全跳过场景
+    </div>
+</div>
+
+<!-- API 接入教程弹窗 -->
+<div class="modal-mask" id="tutModal">
+    <div class="modal-box">
+        <div class="modal-head"><span>❓ API 接入教程</span><button id="tutClose" title="关闭">✕</button></div>
+        <div class="modal-body">
+            <h4>三步接入（以 DeepSeek 为例，约 3 分钟）</h4>
+            <ol>
+                <li><b>注册并充值</b>：打开 DeepSeek 开放平台，注册 / 登录，先充 10 元即可畅玩数千轮；
+                    <div class="copy-row"><span class="copy-txt">https://platform.deepseek.com</span><button class="btn-copy" data-copy="https://platform.deepseek.com">复制</button></div>
+                </li>
+                <li><b>创建密钥</b>：进入 API keys 页面 →「创建 API key」→ 复制 <b>sk-</b> 开头的密钥（只完整显示一次）；
+                    <div class="copy-row"><span class="copy-txt">https://platform.deepseek.com/api_keys</span><button class="btn-copy" data-copy="https://platform.deepseek.com/api_keys">复制</button></div>
+                </li>
+                <li><b>回到本页填写三项</b>，然后点「💾 保存并连接」并勾选「启用 AI」：
+                    <div class="copy-row"><span class="copy-txt">API 地址：https://api.deepseek.com/v1/chat/completions</span><button class="btn-copy" data-copy="https://api.deepseek.com/v1/chat/completions">复制</button></div>
+                    <div class="copy-row"><span class="copy-txt">API Key：粘贴你刚创建的 sk- 密钥</span></div>
+                    <div class="copy-row"><span class="copy-txt">模型名：deepseek-v4-pro</span><button class="btn-copy" data-copy="deepseek-v4-pro">复制</button></div>
+                    <div class="copy-row"><span class="copy-txt">更便宜可填：deepseek-flash</span><button class="btn-copy" data-copy="deepseek-flash">复制</button></div>
+                </li>
+            </ol>
+            <h4>费用参考</h4>
+            <p>每轮对话约消耗 <b>4~5K tokens</b>：deepseek-v4-pro 约 <b>¥0.01~0.05 / 轮</b>（闲时更低），deepseek-flash 约 <b>¥0.003~0.01 / 轮</b>；10 元余额通常可支撑 2000~8000 轮，实际以平台账单为准。</p>
+            <h4>常见问题</h4>
+            <ol class="tut-faq">
+                <li><b>401 密钥无效</b>：密钥复制不全或已被删除，回密钥页重新创建并完整复制；</li>
+                <li><b>连接超时</b>：检查网络是否可达服务商，地址是否以 <b>/v1/chat/completions</b> 结尾；</li>
+                <li><b>CORS 跨域报错</b>：该服务商不允许浏览器直接调用，请换用 DeepSeek 或支持 CORS 的服务商；</li>
+                <li><b>隐私</b>：Key 只保存在你自己的浏览器本地（localStorage），本游戏为纯静态页面、无后端、不上传任何数据；</li>
+                <li><b>其他服务商</b>：兼容所有 OpenAI 兼容接口（硅基流动 / Moonshot / 通义等），把地址换成对应的 /v1/chat/completions、模型名对应替换即可。</li>
+            </ol>
+        </div>
     </div>
 </div>
 
@@ -1950,6 +2003,75 @@ function finishAIAct() {
     freeInput.disabled = false;
     document.getElementById('freeSubmit').disabled = false;
 }
+/* 一键复制（clipboard API + execCommand 兜底，file:// 与 Pages 均可用） */
+function copyText(t) {
+    function done(ok) { toast(ok ? '📋 已复制：' + t.slice(0, 50) : '复制失败，请手动长按选择文本复制'); }
+    function legacyCopy(txt) {
+        var ta = document.createElement('textarea');
+        ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(function () { done(true); }, function () { legacyCopy(t); });
+    } else legacyCopy(t);
+}
+/* 测试连接：请求 {base}/models（不消耗 tokens），按 HTTP 状态给出可读诊断 */
+function apiModelsURL(ep) {
+    return ep.replace(/\/chat\/completions\/?$/, '').replace(/\/+$/, '') + '/models';
+}
+function testConnection() {
+    saveAIToggles();
+    var box = document.getElementById('aiTestResult');
+    if (!AI.cfg.endpoint || !AI.cfg.key || !AI.cfg.model) {
+        box.textContent = '⚠ 请先填写完整的 API 地址 / API Key / 模型名称';
+        box.className = 'ai-test-result warn';
+        return;
+    }
+    box.textContent = '⏳ 正在测试连接（只拉取模型列表，不消耗 tokens）……';
+    box.className = 'ai-test-result busy';
+    var ctl = new AbortController();
+    var timer = setTimeout(function () { ctl.abort(); }, 15000);
+    fetch(apiModelsURL(AI.cfg.endpoint), { headers: { 'Authorization': 'Bearer ' + AI.cfg.key }, signal: ctl.signal })
+        .then(function (r) {
+            clearTimeout(timer);
+            if (r.status === 200) {
+                return r.json().then(function (j) {
+                    var ids = (j.data || []).map(function (m) { return String(m.id || ''); });
+                    var hit = ids.indexOf(AI.cfg.model) >= 0;
+                    box.textContent = hit
+                        ? '✅ 连接成功 · 模型 ' + AI.cfg.model + ' 已在服务商列表中（共 ' + ids.length + ' 个可用模型）。勾选「启用 AI」即可开玩！'
+                        : '✅ 连接成功（共 ' + ids.length + ' 个模型）· 但列表中未看到 ' + AI.cfg.model + '，请核对模型名拼写';
+                    box.className = hit ? 'ai-test-result ok' : 'ai-test-result warn';
+                });
+            }
+            if (r.status === 401 || r.status === 403) {
+                box.textContent = '❌ Key 无效或无权限（HTTP ' + r.status + '）：请回平台重新创建密钥并完整复制（以 sk- 开头）';
+                box.className = 'ai-test-result fail';
+                return null;
+            }
+            if (r.status === 404) {
+                box.textContent = '❌ 找不到接口（HTTP 404）：请确认 API 地址以 /v1/chat/completions 结尾，或该服务商不提供模型列表';
+                box.className = 'ai-test-result fail';
+                return null;
+            }
+            box.textContent = '❌ 服务商返回异常（HTTP ' + r.status + '）：请稍后重试或更换服务商';
+            box.className = 'ai-test-result fail';
+            return null;
+        })
+        .catch(function (e) {
+            clearTimeout(timer);
+            if (e && e.name === 'AbortError') {
+                box.textContent = '❌ 连接超时（15 秒无响应）：检查网络，或地址是否填写正确';
+            } else {
+                box.textContent = '❌ 无法连接：网络不通，或该服务商不允许浏览器直接调用（CORS 限制）——建议使用 DeepSeek';
+            }
+            box.className = 'ai-test-result fail';
+        });
+}
 function bindAIButtons() {
     document.getElementById('aiEnabled').addEventListener('change', saveAIToggles);
     document.getElementById('aiScopeAll').addEventListener('change', saveAIToggles);
@@ -1960,6 +2082,17 @@ function bindAIButtons() {
         saveAIToggles();
         toast(aiUsable() ? '✅ API 连接已保存（' + AI.cfg.model + '）' : '⚠ 已保存，但 API 地址 / Key / 模型尚未填写完整');
     };
+    /* 教程弹窗 */
+    var tut = document.getElementById('tutModal');
+    document.getElementById('aiTutBtn').onclick = function () { tut.classList.add('show'); };
+    document.getElementById('tutClose').onclick = function () { tut.classList.remove('show'); };
+    tut.addEventListener('click', function (e) { if (e.target === tut) tut.classList.remove('show'); });
+    /* 弹窗与面板内一键复制 */
+    document.querySelectorAll('.btn-copy').forEach(function (b) {
+        b.onclick = function () { copyText(b.getAttribute('data-copy')); };
+    });
+    /* 测试连接 */
+    document.getElementById('aiTestBtn').onclick = testConnection;
     document.querySelectorAll('#aiStrictPills .ai-pill').forEach(function (p) {
         p.onclick = function () { setStrict(p.getAttribute('data-lv')); };
     });
