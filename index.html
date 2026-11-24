@@ -873,7 +873,7 @@ function el(cls, html) {
 }
 function hd(t) { var e = document.createElement('p'); e.className = 'scene-head'; e.innerHTML = rp(t); story.appendChild(e); story.scrollTop = story.scrollHeight; }
 /* ---------- 起始设定生效层：人名 / 时代 / 罚则过滤 ---------- */
-var ERA_MAP = { '大师兄': '督导老师', '戒律堂': '训导处', '静室': '训导室', '藏书阁': '图书馆', '宗门': '学院', '掌门': '校长', '师门': '学院', '道袍': '正装衬衫', '弟子': '学生', '晨省': '晨会', '律令': '校规条文' };
+var ERA_MAP = { '大师兄': '督导老师', '戒律堂': '训导处', '静室': '训导室', '藏书阁': '图书馆', '宗门': '学院', '掌门': '校长', '师门': '学院', '道袍': '正装衬衫', '弟子': '学生', '晨省': '晨会', '律令': '校规条文', '本座': '我', '蒲团': '椅子', '萤火': '天台晚风', '过犯': '过错', '师兄弟': '同学' };
 var ERA_TIME = { '子时': '23:00', '丑时': '01:00', '寅时': '04:00', '卯时': '06:00', '辰时': '08:00', '巳时': '10:00', '午时': '12:00', '未时': '14:00', '申时': '16:00', '酉时': '18:00', '戌时': '20:00', '亥时': '22:00' };
 var PUNISH_SUBS = { '戒尺': '训诫', '罚抄': '写检讨', '抄书': '写检讨', '罚跪': '站立听训', '跪省': '站立反省', '罚站': '站立听训', '禁足': '口头警告', '汇报': '约谈' };
 function dName() { return (S.setup && S.setup.discipliner) || '沈砚'; }
@@ -910,7 +910,7 @@ function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 /* 用户回答展示模块：完整呈现玩家输入，与剧情内容明确视觉区分 */
-function userMsg(t) { el('user-msg', '<strong>🌿 若木 · 你的行动：</strong>' + esc(t)); }
+function userMsg(t) { el('user-msg', '<strong>🌿 ' + pName() + ' · 你的行动：</strong>' + esc(t)); }
 var toastTimer = null;
 function toast(msg) {
     var old = document.querySelector('.toast');
@@ -1044,7 +1044,7 @@ function doAct(run, counts, userText) {
     run();
     if (counts && !S.ended) {
         S.actions++;
-        var sc = SCENES[S.scene];
+        var sc = getScenes()[S.scene];
         if (aiUsable() && S.aiArc) {
             /* AI自由剧情模式：不设行动次数限制，由AI判断剧情收束后翻篇；按钮区由AI选项接管 */
             renderChoices(lastAIChoices.length ? aiChoiceButtons(lastAIChoices) : aiModeChoices());
@@ -1065,7 +1065,7 @@ function doAct(run, counts, userText) {
 }
 function startScene(id) {
     clearAutoAdvance();
-    var sc = SCENES[id];
+    var sc = getScenes()[id];
     S.scene = id; S.actions = 0;
     if (sc.day) S.day = sc.day;
     if (sc.time) S.time = sc.time;
@@ -1135,7 +1135,7 @@ var FREE = [
     { re: /送你|送给|递给|礼物/, run: function () {
         say('沈砚', '心意收下。');
         n('顿了顿——');
-        say('沈砚', '但律，抄完了吗？');
+        say('沈砚', '但该罚的，做完了吗？');
         eff({ favor: 1, discipline: 1 });
     } }
 ];
@@ -1183,7 +1183,7 @@ function countHits(re, val) {
 }
 function matchFree(val) {
     var best = null, bestScore = 0;
-    (SCENES[S.scene].free || []).forEach(function (it) {
+    (getScenes()[S.scene].free || []).forEach(function (it) {
         var s = countHits(it.re, val);
         if (s > bestScore) { best = it; bestScore = s; }
     });
@@ -1665,38 +1665,511 @@ var SCENES = {
     }
 };
 
+/* ---------- 时代场景切换：现代用原生剧本，古代用仙侠剧本 ---------- */
+function getScenes() { return (S.setup && S.setup.era === 'modern') ? SCENES_M : SCENES; }
+
+/* ---------- 现代剧本：启明中学 · 训导制度 ---------- */
+var SCENES_M = {
+
+    /* ---------- 场景1：晨会点名缺勤 ---------- */
+    s1: {
+        need: 3, next: 's1b',
+        nextLabel: '⏳ 第一节课后 · 训导处见',
+        enter: function () {
+            S.time = '07:40'; S.loc = '启明中学·操场';
+            hd('【周一 07:40 · 启明中学 · 操场】');
+            line('周一晨会，全校按班级列队。你站在队伍最末的“迟到席”，校服拉链拉到一半，睡眼还没完全睁开——昨晚翻墙出校，天快亮才从网吧后窗翻回宿舍，闹钟响了（你根本没听见）。');
+            n('队伍前方，训导处主任顾玄英拿着晨检登记表，一个班一个班地过。走到你们班队伍前，他的脚步停住了。');
+            say('沈砚', '林小竹。晨会点名，缺勤一次；昨晚查寝，223宿舍缺寝一人。两项记录——宿管的登记表，走廊监控的截图，都在这里。');
+            n('你本以为神不知鬼不觉的一夜，全部变成了白纸黑字。');
+            say('沈砚', '晨会结束，训导处来找我。现在先回答我——昨晚，去哪了？');
+        },
+        choices: function () { return [
+            { t: '含糊承认：夜不归宿，别的没提', run: function () {
+                line('你压低声音：“就……翻墙出去待了会儿，没干什么坏事。”');
+                say('沈砚', '“待了会儿”。待在哪，干什么，和谁——一条一条说。');
+                n('他没发火，只是把登记表往你面前推了推。翻墙的监控截图上，时间清清楚楚。');
+                eff({ violation: 2, discipline: 2 });
+            } },
+            { t: '全盘托出，一条不瞒', run: function () {
+                line('你干脆利落全说了：翻墙、网吧、通宵、天亮从后窗爬回宿舍。');
+                say('沈砚', '记你一个“如实陈述”。撒谎和犯错是两本账——这本，不记。');
+                eff({ trust: 8, violation: 1, emotion: 2 });
+                S.flags.fullHonest = true;
+            } },
+            { t: '撒娇讨饶：老师我错了', run: function () {
+                line('你把校服帽子一扣，声音拖得老长：“老师～我错啦，下次一定……”');
+                say('沈砚', '“下次”这个词，你的检讨书里出现过十一次。念给我听，第十一遍是什么。');
+                n('你：“……”');
+                eff({ obedience: 1, discipline: 3, favor: -1 });
+            } },
+            { t: '辩解：给生病的朋友送药', special: true, run: function () {
+                line('你眼皮都没抬：“我朋友生病，我给他送药去了。”');
+                say('沈砚', '几点的监控，走的哪面墙，买的什么药——要我把三样放在一起核对吗？');
+                n('他翻开登记表，没再看你。撒谎被当场按住的感觉，比戒尺还烫。');
+                eff({ trust: -5, violation: 4, discipline: 2 });
+            } },
+            { t: '低着头，什么都不说', run: function () {
+                n('你盯着自己的鞋尖。晨会的广播还在放“新学期新气象”。');
+                say('沈砚', '不说话也行。登记表不会替你说谎，但它替你记得很全。跟我走。');
+                eff({ discipline: 2, resistance: 1 });
+            } },
+            { t: '试探：主任这么早来操场，也没睡好？', special: true, run: function () {
+                n('他翻登记表的手停了半秒。');
+                say('沈砚', '我睡得很好。倒是你——223宿舍，熄灯后两小时，后墙监控，红外套。');
+                n('铁证如山。你还想再挖点什么，他已经合上了表。');
+                eff({ emotion: 2, discipline: 1 });
+            } }
+        ]; },
+        free: [
+            { re: /宿管|查寝|监控|记录|登记表/, run: function () {
+                say('沈砚', '查寝每晚十点、十一点各一次；监控走廊、围墙、后门全覆盖。你翻出去的每一步，都比你想的清楚。');
+                eff({ discipline: 1 });
+                S.flags.knowWatch = true;
+            } },
+            { re: /手机|游戏|网吧|上网|通宵/, run: function () {
+                say('沈砚', '网吧、通宵、游戏——按校规，还得加上一条“出入营业性娱乐场所”。想清楚再开口。');
+                eff({ violation: 1, discipline: 1 });
+            } },
+            { re: /跑|逃|溜|翻墙|别抓我/, run: function () {
+                n('你脚跟刚往后撤了半步。');
+                say('沈砚', '上周翻墙的学生跑到了校外快餐店，被治安巡逻送回来的。你要试试，还是省点力气？');
+                eff({ resistance: 2, discipline: 2 });
+            } },
+            { re: /笑|好笑|逗/, run: function () {
+                say('沈砚', '笑够了？晨检登记表在我手里，你每笑一分钟，它就多记一行。');
+                eff({ emotion: 1, discipline: 1 });
+            } },
+            { re: /哭|委屈|难过|害怕/, run: function () {
+                n('他看了你两秒，语气缓了一格。');
+                say('沈砚', '哭可以，哭完把事情说清楚。委屈和记录是两回事，我不混着算。');
+                eff({ emotion: 2 });
+            } },
+            { re: /为什么|凭什么|管我|我爸妈/, run: function () {
+                say('沈砚', '凭什么——校规第一条，监护协议第二条，我吃这份工资第三条。三条都够。还想听哪条？');
+                eff({ discipline: 1, emotion: 1 });
+            } },
+            { re: /戒尺|领罚|要罚|罚我|打我/, run: function () {
+                say('沈砚', '怎么罚，午间按公示的惩戒清单来。清单之外，我一样都不会用。');
+                eff({ obedience: 1 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景1b：训导室 · 违纪通知单 ---------- */
+    s1b: {
+        need: 1, next: 's2',
+        nextLabel: '⏳ 午间 · 按惩戒清单执行',
+        enter: function () {
+            S.time = '08:20'; S.loc = '训导处·谈话室';
+            hd('【08:20 · 训导处 · 谈话室】');
+            line('谈话室不大，一张桌子，两把椅子，墙上贴着《学生惩戒清单》和一排装订整齐的处分案例。顾玄英把一张违纪通知单放在你面前：一式三联，复写纸，蓝色字迹。');
+            say('沈砚', '念一遍。姓名、班级、违纪事由、依据条款。念完了，签字。');
+            n('违纪事由一栏写得工整：晨会无故缺勤一次；夜不归宿一次。依据条款：《学生日常行为规范》第八条、第十五条。');
+        },
+        choices: function () { return [
+            { t: '认真念完，签字认下', run: function () {
+                line('你一个字一个字念完，签下名字。字不难看，他看了你签名一眼。');
+                say('沈砚', '字不错。通知单学生联你自己收好，午间报到，按清单执行。');
+                eff({ obedience: 4, trust: 3, violation: -1 });
+            } },
+            { t: '问：会不会进档案？', run: function () {
+                say('沈砚', '看表现。这次走“训诫与校内惩戒”，不进档案；再犯，就是另一张单子、另一种谈话。');
+                n('他把第二联撕下来递给你——上面“记入档案”那一栏，空着。');
+                eff({ emotion: 3, trust: 2, obedience: 1 });
+            } },
+            { t: '讨价还价：能不能少记一条', run: function () {
+                say('沈砚', '少记哪条？缺勤是点名册记的，缺寝是宿管记的。我改记录，就是让学生替老师撒谎。');
+                n('你闭嘴了。他倒是补了一句——');
+                say('沈砚', '午间报到认真的话，处置意见我可以写“态度配合”。这是我能给的全部。');
+                eff({ violation: 1, trust: 1, discipline: 1 });
+            } },
+            { t: '在签名处写“不服”', special: true, run: function () {
+                n('你把笔一转，在签名栏写了“不服”两个字。');
+                say('沈砚', '可以。申诉流程在清单背面，三日内书面提交，我照章受理。');
+                n('他把“不服”圈出来，在旁边工整批注：“学生主张申诉，程序合法。”');
+                say('沈砚', '程序你赢了，记录还是记录。午间报到，不许迟到。');
+                eff({ resistance: 2, discipline: 3, emotion: 1 });
+                S.flags.reportPending = true;
+            } },
+            { t: '问墙上那些处分案例是谁', run: function () {
+                n('你指着墙上装订的案例册。');
+                say('沈砚', '往届学生的。每一份我都保存着——有改好的，也有没改好的。');
+                n('他抽出一册翻开，夹页里掉出一张旧照片，一群学生站在校门口。他不动声色地夹了回去。');
+                eff({ emotion: 3, favor: 1 });
+                S.flags.learnedHerb = true;
+            } }
+        ]; },
+        free: [
+            { re: /家长|爸妈|通知/, run: function () {
+                say('沈砚', '这次不通知家长。通知他们的日子，应该是我夸你的时候——但愿别太久。');
+                eff({ emotion: 2, favor: 1 });
+            } },
+            { re: /想开点|无所谓|随便/, run: function () {
+                say('沈砚', '无所谓是好事，说明你还没怕过。怕，是要留到实在改不了那天再用的。');
+                eff({ discipline: 1, emotion: 1 });
+            } },
+            { re: /谢谢|谢了/, run: function () {
+                n('他收拾通知单的手没停。');
+                say('沈砚', '谢我之前，先谢那位按时登记你缺寝的宿管阿姨。记你缺，也是护你。');
+                eff({ favor: 1, obedience: 1 });
+            } },
+            { re: /逃跑|跑|翻窗/, run: function () {
+                n('你瞟了一眼谈话室的后窗。');
+                say('沈砚', '二楼。窗台一米五，外沿刷了防滑漆——去年就有学生试过。坐好。');
+                eff({ discipline: 1, emotion: 1 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景2：午间 · 按惩戒清单执行 ---------- */
+    s2: {
+        need: 3, next: 's3',
+        canAdvance: function () { return !(S.flags.reportPending && !S.flags.reported); },
+        nextLabel: '⏳ 午休后 · 自习室写检讨',
+        enter: function () {
+            S.time = '12:30'; S.loc = '训导处·谈话室';
+            hd('【12:30 · 训导处 · 谈话室】');
+            line('午休铃响过，谈话室里只有吊扇转动的声音。顾玄英把《学生惩戒清单》摊开在桌上，指尖停在其中一行。');
+            say('沈砚', '清单第几条，你自己念。念完自己伸出手——清单上怎么写，我就怎么做，一样不多，一样不少。');
+            n('纪检队的小何抱着记录本在门口探头探脑，被一个眼神钉在原地。');
+        },
+        choices: function () { return [
+            { t: '自己念清单，主动领罚', run: function () {
+                line('你照着清单把条款念出来，把手伸平搁在桌沿。');
+                n('按清单执行。每一记落下，他都会报一次数；结束之后，桌角多了一瓶冷却喷雾。');
+                say('沈砚', '忍得住。比翻墙那晚的胆气不差。');
+                eff({ obedience: 3, discipline: 2, trust: 2 });
+            } },
+            { t: '磨磨蹭蹭，半天不伸手', run: function () {
+                line('你的手抬起来又放下，放下又抬起来，像够不着插座插头充电线。');
+                say('沈砚', '拖得越久，记录表上就多写一行“执行困难”。手，放上来。');
+                n('最后一记比前几记都沉。你嘶了一声，他眉头也皱了一下，但没停。');
+                eff({ discipline: 2, violation: 1 });
+                S.flags.reportPending = true;
+            } },
+            { t: '问这条清单是谁定的', run: function () {
+                say('沈砚', '校务会定的，家长委员会签字，教育局备案。我是执行的人，不是立法的人。');
+                n('他指给你看清单落款处的红章，又指了指你签过字的同意栏。');
+                say('沈砚', '你入学那天，这份清单的家长知情书，你父亲签过字。');
+                eff({ emotion: 3, favor: 1, trust: 1 });
+                S.flags.learnedHerb = true;
+            } },
+            { t: '执行到一半缩手', special: true, run: function () {
+                n('执行到一半，你疼得一缩手。');
+                say('沈砚', '缩手，加一次。放回去。清单上写着“执行中断重新起算”。');
+                n('你认命地放回去。剩下的次数，比先前的都沉。');
+                eff({ violation: 2, discipline: 3, resistance: 1 });
+                S.flags.reportPending = true;
+            } },
+            { t: '和小何搭话', run: function () {
+                n('你冲门口的小何挤眉弄眼。小何左右看看，凑过来压低嗓子。');
+                say('小何', '竹哥，主任昨晚在办公室把这页清单看了半宿，烟灰缸都满了——像是下不去手。');
+                n('你一愣。');
+                say('沈砚', '小何。你的记录本，字歪了。');
+                n('小何一溜烟跑了。你盯着桌上那份清单，琢磨“下不去手”四个字。');
+                eff({ emotion: 3 });
+                S.flags.knowWatch = true;
+            } },
+            { t: '主动汇报中午的全部动向', if: function () { return S.flags.reportPending && !S.flags.reported; }, run: function () {
+                line('你把中午去哪、干了什么，一五一十报了。');
+                say('沈砚', '记下了。自己报的，照例减一等。');
+                eff({ trust: 4, obedience: 2, violation: -1 });
+                S.flags.reported = true;
+            } },
+            { t: '揣着明白装糊涂', if: function () { return S.flags.reportPending && !S.flags.reported; }, special: true, run: function () {
+                n('你决定只字不提。');
+                n('吊扇转了三圈，他忽然开口——');
+                say('沈砚', '午间报到呢？登记表上，你的名字还是空的。');
+                n('你头皮发麻。原来“午间报到”，是真的要报到。');
+                eff({ trust: -3, violation: 3, discipline: 2 });
+                S.flags.reported = true;
+            } }
+        ]; },
+        free: [
+            { re: /痛|疼|手疼|轻点/, run: function () {
+                say('沈砚', '疼，就记住这份疼。下次翻墙之前，先想想手心。');
+                eff({ obedience: 1 });
+            } },
+            { re: /谢谢|多谢/, run: function () {
+                n('他收拾清单的手没停。');
+                say('沈砚', '谢什么。账是你自己犯下的，清了，往后谁也别欠谁。');
+                n('顿了顿——');
+                say('沈砚', '手背红得厉害。医务室拿点药膏，别沾凉水。');
+                eff({ favor: 1, emotion: 1 });
+            } },
+            { re: /萤火|晚上|出校|出去/, run: function () {
+                n('他执行的手一顿。');
+                say('沈砚', '想出去看什么，跟我说。清单之内能给的，我给；清单之外的——门禁替我回答你。');
+                eff({ emotion: 2 });
+                S.flags.promiseHint = true;
+            } },
+            { re: /凭什么|为什么打|为什么罚/, run: function () {
+                say('沈砚', '翻墙靠手，爬窗靠手。惹祸的根苗是手，清单第几条就只认手。');
+                n('答得很快，快得像早就备好了这句话。');
+                eff({ discipline: 1, emotion: 1 });
+                S.flags.knowWatch = true;
+            } }
+        ]
+    },
+
+    /* ---------- 场景3：自习室 · 写检讨 ---------- */
+    s3: {
+        need: 3, next: 's4',
+        nextLabel: '⏳ 18:40 · 办公室谈话',
+        enter: function () {
+            S.time = '14:00'; S.loc = '明理楼·自习室';
+            hd('【14:00 · 明理楼 · 自习室】');
+            line('自习室里静得能听见笔尖沙沙。桌上摊着《学生日常行为规范》和一沓稿纸，第一行标题你已经写了三遍：检讨书。顾玄英坐在三步外的办公桌后批月考卷，偶尔抬眼看你一下，像给你的笔速计时。');
+            say('沈砚', '写检讨不比罚站。手上有活，心里就容易静。你写你的，我批我的，谁也不碍着谁。');
+        },
+        choices: function () { return [
+            { t: '认认真真写检讨', run: function () {
+                line('一遍，两遍。写到第三遍，“翻越围墙出入校门”这句话已经不用看规范原文了。');
+                n('手腕发酸，心里却奇异地静下来——原来静下来做事，是这种感觉。');
+                eff({ obedience: 4, trust: 2 });
+            } },
+            { t: '在稿纸边角画小人（画他）', special: true, run: function () {
+                line('写着写着，笔尖拐了个弯，稿纸边角多了个吹胡子瞪眼的小人——衬衫，工牌，眉眼有三分像三步外那位。');
+                n('你越画越入神，没察觉他已经立在你身后。');
+                n('他伸手，把纸抽走了。');
+                say('沈砚', '……耳朵画大了。');
+                n('你：“……”');
+                say('沈砚', '检讨照写。画，充公。');
+                n('他把纸折好，夹进了那本月考卷里。');
+                eff({ favor: -1, discipline: 2, emotion: 2 });
+                S.flags.drewPortrait = true;
+            } },
+            { t: '趴在桌上打瞌睡', run: function () {
+                if (S.trust >= 40) {
+                    n('你伏在稿纸上睡着了。半梦半醒间，一件带着薄荷洗衣液味道的外套轻轻搭上你的肩。');
+                    say('沈砚', '睡一刻。一刻后我叫你。');
+                    eff({ emotion: 3, favor: 2 });
+                } else {
+                    n('你头一点一点，笔尖在稿纸上拖出一条歪线。');
+                    say('沈砚', '醒醒。检讨写不完，晚自习接着写。');
+                    eff({ violation: 1, discipline: 3 });
+                }
+            } },
+            { t: '把检讨写成小说', special: true, run: function () {
+                line('你笔锋一转：“那是一个月黑风高的夜晚，一个少年凝望着围墙……”');
+                n('他从月考卷里抬起眼，把稿纸拿过去，从头到尾看了一遍。');
+                say('沈砚', '文笔不错，中心思想错了。重写——开头第一句，写“我做了什么”。');
+                n('他没撕那页稿纸，只是把它抽出来，压在了自己那摞卷子最底下。');
+                eff({ discipline: 2, emotion: 2, favor: 1 });
+                S.flags.novel = true;
+            } },
+            { t: '抄近道：问他要检讨模板', run: function () {
+                say('沈砚', '模板有——处分案例册里全是。但抄模板的检讨，我看得出来。你要真抄，就抄全，标点都别错。');
+                n('你翻了半小时案例册，最后还是自己写了。写完发现自己的版本，居然比模板诚恳。');
+                eff({ obedience: 2, trust: 1 });
+            } }
+        ]; },
+        free: [
+            { re: /困|睡|歇/, run: function () {
+                say('沈砚', '写完这段再歇。手别停。');
+                eff({ obedience: 1 });
+            } },
+            { re: /太多|写不完|累/, run: function () {
+                say('沈砚', '昨夜翻墙的时候，力气没见你省着用。写。');
+                eff({ discipline: 1 });
+            } },
+            { re: /为什么|有意义吗|形式主义/, run: function () {
+                say('沈砚', '检讨不是写给我看的，是写给两周后的你的。人总是好了伤疤忘了疼，纸上的疼，忘得慢。');
+                eff({ emotion: 2, trust: 1 });
+            } },
+            { re: /笔|纸|稿纸/, run: function () {
+                n('他从抽屉里抽出一支笔递给你，笔杆上有校徽。');
+                say('沈砚', '用这个。原稿纸皱了，卷面分都没有。');
+                eff({ favor: 1 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景4：放学后 · 办公室谈话 ---------- */
+    s4: {
+        need: 1, next: 's5',
+        nextLabel: '⏳ 周五晨会 · 最后的对账',
+        enter: function () {
+            S.time = '18:40'; S.loc = '训导处·办公室';
+            hd('【18:40 · 训导处 · 办公室】');
+            line('晚自习的铃还没打，办公室里只剩你一个人。最后一页检讨被他收走，他没有说“回去吧”，反而给你倒了杯温热的蜂蜜水——校医建议戒熬夜的人喝的那种。');
+            say('沈砚', '坐。今天的检讨，结束了。现在不谈检讨——我问你个事。');
+            say('沈砚', '你入学两年，违纪十七次。我翻过你的记录：翻墙九次，夜不归宿五次，顶撞老师三次。林小竹，你为什么总违纪？');
+            n('窗外的路灯次第亮起。你忽然意识到，这是他第一次问“为什么”，而不是“错在哪”。');
+        },
+        choices: function () { return [
+            { t: '说实话：就是好奇，憋不住', run: function () {
+                n('你捏着杯子，低声道：“围墙外面的夜市、天台的风、凌晨三点的街道……我就是想看看。”');
+                n('他静了片刻。');
+                say('沈砚', '想看，不是罪。不择手段地想看，才是。');
+                n('他把违纪记录翻到新的一页，写了几行，推给你看——“每月最后一个周五，随我巡查晚自习。”');
+                say('沈砚', '往后你想看什么，先问我。学校里看不了的，我带你看，不必翻墙。');
+                n('你鼻子忽然有点酸。');
+                eff({ trust: 5, emotion: 4, favor: 2 });
+                S.flags.patrol = true;
+            } },
+            { t: '嘴硬：违纪了才能来办公室', special: true, run: function () {
+                line('你把杯子一搁，理直气壮：“违纪要来训导处，来训导处就能见主任。一举两得。”');
+                n('他的杯子停在唇边，半晌没动。');
+                say('沈砚', '……全校两千多条校规，到你嘴里成了这条。');
+                n('但你没漏看他眼底那一线没绷住的笑意。');
+                eff({ favor: 2, emotion: 2, trust: 1 });
+            } },
+            { t: '沉默，低头搅蜂蜜水', run: function () {
+                n('你低头搅着杯子，不说话。');
+                n('他没有逼你，只把台灯往你那边挪了挪。');
+                say('沈砚', '不想说，就先回宿舍。明天的晨读，别再迟。');
+                n('临出门，他忽然补了一句——');
+                say('沈砚', '林小竹。后巷那段路没有路灯，下次翻墙，记得绕开下水道井盖。');
+                n('你猛地回头。他已经低头继续批卷子了，仿佛什么都没说。');
+                eff({ emotion: 2, favor: 1 });
+            } },
+            { t: '反问：主任为什么总盯着门禁和围墙？', run: function () {
+                n('他很久没说话，久到你以为他不会答了。');
+                say('沈砚', '十二年前，我带的学生夜里翻墙出去，出了车祸。');
+                n('台灯的光圈稳稳的，像一页被翻过千百遍的记录。');
+                n('他的声音很平。');
+                say('沈砚', '从那以后，这所学校的门禁和围墙，就总得有个人守着。');
+                n('你握着杯子，忽然明白了墙上那一摞处分案例册意味着什么。');
+                eff({ emotion: 5, trust: 3 });
+                S.flags.backstory = true;
+            } }
+        ]; },
+        free: [
+            { re: /萤火|夜市|天台|出去/, run: function () {
+                if (S.flags.promiseFirefly || S.flags.promiseHint) {
+                    say('沈砚', '巡查那日，记得起早。');
+                    n('他没有多解释一个字。但你知道，那个约，他记下了。');
+                    eff({ emotion: 2 });
+                    S.flags.promiseFirefly = true;
+                } else {
+                    say('沈砚', '想看的东西，先过我这关。明天的晨读，别迟。');
+                    eff({ emotion: 1 });
+                }
+            } },
+            { re: /困|睡|回宿舍|歇/, run: function () {
+                say('沈砚', '回吧。后巷，井盖，东侧。');
+                eff({ favor: 1 });
+            } },
+            { re: /巡查|周五|晚自习/, run: function () {
+                if (S.flags.patrol) {
+                    say('沈砚', '最后一个周五，晚自习铃响后，训导处集合。迟到，作废。');
+                    eff({ obedience: 1 });
+                } else {
+                    say('沈砚', '等你能先守好晨读，再谈巡查。');
+                    eff({ discipline: 1 });
+                }
+            } },
+            { re: /蜂蜜|杯子|水/, run: function () {
+                n('你盯着杯子里打旋的蜂蜜。');
+                say('沈砚', '校医的方子。熬夜的人，胃先坏。');
+                eff({ emotion: 1, favor: 1 });
+            } }
+        ]
+    },
+
+    /* ---------- 场景5：周五 · 结算 ---------- */
+    s5: {
+        need: 1, next: null,
+        enter: function () {
+            S.day = 5; S.time = '07:20'; S.loc = '启明中学·操场';
+            hd('【周五 07:20 · 启明中学 · 操场】');
+            line('晨会前十分钟，操场上还没什么人。你推开教室后门又走下来——这是你转来启明以后，第一次提前到。');
+            n('他抬眼，眼底掠过一丝极淡的意外。');
+            say('沈砚', '今日倒早。');
+            n('他面前摆着两份东西：一份是你的违纪记录册，一份是新拟的约定条款。');
+        },
+        choices: function () {
+            if (S.ended) return [];
+            return [
+                { t: '“睡了个好觉，自然早。”', run: function () {
+                    say('沈砚', '嗯，精神倒是好。');
+                    eff({ favor: 1 });
+                    showEnding();
+                } },
+                { t: '来给主任帮忙搬晨检表', run: function () {
+                    say('沈砚', '正好。搬过去，按班次码好。');
+                    n('你抱着一摞晨检表码得整整齐齐，晨光把两个人的影子投在同一片操场上。');
+                    eff({ favor: 2, emotion: 2 });
+                    showEnding();
+                } },
+                { t: '“巡查晚自习的事，我还记着。”', if: function () { return S.flags.promiseFirefly; }, run: function () {
+                    n('他翻记录的手，停了一停。');
+                    say('沈砚', '快了。就今天，最后一个周五。');
+                    n('——他把你的念想，一直记在心上。你心口莫名一热。');
+                    eff({ emotion: 3 });
+                    showEnding();
+                } },
+                { t: '“昨晚的话……我都记得。”', if: function () { return S.flags.backstory; }, run: function () {
+                    say('沈砚', '记得就好。');
+                    n('他没有再说什么。但今天的蜂蜜水，比往日的甜。');
+                    eff({ trust: 2, emotion: 2 });
+                    showEnding();
+                } }
+            ];
+        },
+        free: []
+    }
+};
+
 /* ---------- 结局判定 ---------- */
 function showEnding() {
     S.ended = true;
     var f = S.flags;
     var rank, title, body;
+    var isModern = S.setup && S.setup.era === 'modern';
     if (S.resistance >= 20 || S.violation >= 18) {
-        rank = 'C'; title = '戒尺与律令';
-        body = [
+        rank = 'C';
+        title = isModern ? '记过档案' : '戒尺与律令';
+        body = isModern ? [
+            '周五晨会，广播念到你的名字：高二（3）班林小竹，记大过一次，全校通报。违纪通知单的第三联，装进了你的学籍档案袋。',
+            '家长会后，顾玄英送你到校门口，只说了一句：“处分记的是档案，不是人。你哪天想明白了，训导处的门一直开着。”',
+            '你攥着书包带站在校门口，忽然有点想哭——不是因为怕。',
+            '顾玄英执笔的手很稳，每一份记录都写得清清楚楚，却也每一次都给你留了改的余地。'
+        ] : [
             '第4日晨，你的戒律册上添了新的一页：禁足七日，戒尺十下，罚抄二十遍。',
             '沈砚执尺的手很稳，每一下都不重，却每一下都让你记牢。',
             '打完，他合上戒律册，只说了一句：“我守戒律堂的灯，不守成败。你哪天想明白了，自己来找我。”',
             '你站在静室门口，忽然有点想哭——不是因为疼。'
         ];
     } else if (f.promiseFirefly && S.emotion >= 30) {
-        rank = 'S'; title = '萤火与晨露';
-        body = [
+        rank = 'S';
+        title = isModern ? '天台与晚风' : '萤火与晨露';
+        body = isModern ? [
+            '期末前最后一个晚自习，你的检讨按时交了，午间报到一次没缺，惩戒清单上的账早销完了。',
+            '那天放学，顾玄英没让你直接回宿舍，而是带你去了一趟教学楼天台——走正门，用他那串训导处才有的钥匙。',
+            '晚风把整个校园的灯吹得亮起来。他站在你身侧半步的地方，声音很轻：“记住了？想知道什么，先问我。”',
+            '你点头。晚自习的铃声远远响起，你忽然觉得，守着门禁之内，也能看见最亮的光。'
+        ] : [
             '第7日，最后一遍罚抄销了账，戒尺之罚也早已领完。你难得清闲，蹲在戒律堂廊下看檐角的铜铃，像个守着糖罐的孩子。',
             '当夜，沈砚果真带你上了后山。没有翻墙——走正门，月白道袍，袖中一盏昏灯。',
             '萤火漫起来的时候，他坐在你身侧半步的地方，声音很轻：“记住了？想知道什么，先问我。”',
             '你点头。山风把萤火吹得漫天都是。你忽然觉得，守着界内，也能看见最亮的光。'
         ];
     } else if (S.trust >= 45 && S.obedience >= 40 && S.violation <= 10) {
-        rank = 'A'; title = '玉不琢 · 不成器';
-        body = [
+        rank = 'A';
+        title = isModern ? '量化分表' : '玉不琢 · 不成器';
+        body = isModern ? [
+            '周五，你的检讨书按时交了，字迹工整；午间报到一次不落；惩戒清单上的账，销得干脆利落。班级量化分表上，你被扣的分一点点加了回来。',
+            '顾玄英在违纪通知单的存根联背面写下四个字：戒，渐明。',
+            '“玉不琢，不成器。”他把通知单递给你，“往后的量化分，你自己记。我抽查。”',
+            '你接过那张纸，第一次觉得，处分也可以是一种信任。'
+        ] : [
             '第4日，你的午时汇报按时交了，罚抄十遍一字不差，戒尺之罚也领得干脆利落。',
             '沈砚在戒律册的新一页写下四个字：戒，渐明。',
             '“玉不琢，不成器。”他把册子递给你，“往后这册，你自己记。我抽查。”',
             '你接过册子，第一次觉得，罚也可以是一种信任。'
         ];
     } else {
-        rank = 'B'; title = '来日方长';
-        body = [
+        rank = 'B';
+        title = '来日方长';
+        body = isModern ? [
+            '周五晨会，你提前十分钟到了操场。抬头时，顾玄英也正好抬眼看你。',
+            '新的约定写在违纪通知单的背面，一式两份：按时到校、午间报到、惩戒并行——末尾多了一行小字：“每月末，随我巡查晚自习。”',
+            '“签不签？”顾玄英把笔递给你。',
+            '你签了。有些规矩立下的时候，人就悄悄留在了规矩里。来日方长。'
+        ] : [
             '第4日，晨省。你提前一刻钟到了，他也是。',
             '新的契约条款写在纸上，一式两份：晨昏定省，午时汇报，戒尺与罚抄并行——末尾多了一行小字：“朔日，随巡。”',
             '“签不签？”沈砚把笔递给你。',
@@ -1729,6 +2202,7 @@ function showEnding() {
 var AI_FLAG_WHITELIST = ['gardenPressed', 'fullHonest', 'gardenAdmitted', 'busted', 'askSeed', 'reportPending', 'reported', 'learnedHerb', 'knowWatch', 'promiseHint', 'drewPortrait', 'askedLaw', 'promiseFirefly', 'backstory', 'patrol', 'confined', 'snack'];
 var AI = { cfg: { enabled: false, scopeAll: false, endpoint: '', model: '', key: '', effort: 'low', strict: 2 } };
 var STRICT_NAMES = { 1: '温润宽和', 2: '标准师门', 3: '严厉管教', 4: '铁面严苛' };
+function strictName(lv) { return (S.setup && S.setup.era === 'modern') ? ({ 1: '温和', 2: '标准', 3: '严厉', 4: '铁面' }[lv] || STRICT_NAMES[lv]) : STRICT_NAMES[lv]; }
 var STRICT_DESC = {
     1: '温润宽和——循循善诱，小过多以劝导、做事代替责罚，容易被求饶打动。',
     2: '标准师门——温润如玉但底线分明，罚则与过错相称。',
@@ -1836,11 +2310,11 @@ function syncAIUI() {
     var ok = aiUsable();
     var missing = !AI.cfg.endpoint || !AI.cfg.key || !AI.cfg.model;
     document.getElementById('aiStatus').textContent = ok
-        ? ('AI 状态：已连接 · ' + AI.cfg.model + ' · ' + dName() + '：' + STRICT_NAMES[AI.cfg.strict])
+        ? ('AI 状态：已连接 · ' + AI.cfg.model + ' · ' + dName() + '：' + strictName(AI.cfg.strict))
         : (missing ? 'AI 状态：未连接 API · 请填写 API 地址 / Key / 模型后点「保存并连接」'
                    : 'AI 状态：配置已存 · 勾选上方「启用 AI」即可开玩');
     document.getElementById('aiHintState').textContent = ok
-        ? ('当前由你连接的 AI（' + AI.cfg.model + '·' + STRICT_NAMES[AI.cfg.strict] + '档）实时响应你的每一次输入。')
+        ? ('当前由你连接的 AI（' + AI.cfg.model + '·' + strictName(AI.cfg.strict) + '档）实时响应你的每一次输入。')
         : '当前由本地剧本引擎响应；连接 API 并启用 AI 后，' + dName() + '将真正听懂你的每一句话。';
 }
 function setStrict(lv) {
@@ -1850,9 +2324,9 @@ function setStrict(lv) {
     if (aiUsable()) {
         var fx = STRICT_SWITCH_EFFECTS[lv];
         if (fx) eff(fx);
-        toast('⚖️ 沈砚严厉程度切换为「' + STRICT_NAMES[lv] + '」，后续剧情按此基调推进');
+        toast('⚖️ ' + dName() + '严厉程度切换为「' + strictName(lv) + '」，后续剧情按此基调推进');
     } else {
-        toast('严厉程度已记录为「' + STRICT_NAMES[lv] + '」，启用 AI 后生效');
+        toast('严厉程度已记录为「' + strictName(lv) + '」，启用 AI 后生效');
     }
     saveAIToggles();
     syncAIUI();
@@ -1873,24 +2347,26 @@ function buildAISystemPrompt(opts) {
     var diffBlock = (su.difficulty === 3 ? '【难度·严酷】整体基调严厉：惩罚更重、翻旧账更狠，effects 负面波动加大（负面单项可达+12），favor/trust 极难提升。' : su.difficulty === 1 ? '【难度·温和】整体基调宽松：说理为主、惩罚偏轻，effects 涨跌温和（单项绝对值≤8），favor/trust 更易提升。' : '【难度·标准】赏罚分明，按过错轻重正常处置。');
     var punishBlock = '【生效罚则清单·最高优先级】本局允许出现的惩罚手段仅限：' + ((su.punish && su.punish.length) ? su.punish.join('、') : '（未勾选任何罚则）') + '。所有剧情、台词与处置必须且只能使用清单内的罚则；严禁出现清单之外的任何罚具、体罚或处置方式（清单没有的罚具/手段一次都不许提）；未勾选任何罚则时，只允许口头训诫、批评教育、谈话与记录在案。choices 中涉及领罚的选项也只能指向清单内的罚则。';
     var worldBlock = su.era === 'modern'
-        ? '【世界观】现代校园·训导制度。玩家扮演跳脱好动、好奇心重的违纪学生' + su.player + '（男）；' + su.discipliner + '是训导处的督导老师，一丝不苟、底线分明，对欺瞒与偷盗零容忍。校园惩戒以训导处公示的惩戒清单为准（见生效罚则清单），不使用侮辱性内容（健康向，无血腥暴力、无任何亲密越界内容，二人为师生管教情谊）。配角如同学、宿管阿姨、纪检学生等可自然登场。'
+        ? '【世界观】现代校园·启明中学（一所真实的市重点住校高中）。玩家扮演高二年级跳脱好动、屡教不改的违纪学生' + su.player + '（男）；' + su.discipliner + '是训导处主任，办事一丝不苟、底线分明，对欺瞒与顶撞零容忍。学校作息与制度全部现代化：晨会/早读/课间/午休/晚自习/查寝，违纪处理走正规流程（违纪通知单、训导处约谈、量化分、检讨书、记过档案、约谈家长），生效罚则清单经校务会与家长委员会备案、家长签字知情。配角如同学小何、宿管、纪检队员、班主任等可自然登场。【现代叙事铁律】严禁出现任何古风词汇、器物与意象：弟子、师兄、师门、宗门、掌门、道袍、律令、时辰、一炷香、晨省、告假、修为、灵气、江湖、功法等一律禁止；称呼只用老师/主任/同学/宿管/班干部；时间只用现代时刻（如07:40）或早读/课间/午休/晚自习；地点只用教室/走廊/办公室/训导处/宿舍/食堂/操场/天台/校门口；过错只用现代校园过错（逃课、翻墙外出上网、夜不归宿、私闯天台、手机违规、考试作弊、顶撞老师、损毁公物、藏烟等）。（健康向，无血腥暴力、无任何亲密越界内容，二人为师生管教情谊。）'
         : '【世界观】修仙宗门·戒律堂。玩家扮演跳脱好动、好奇心重的编外弟子' + su.player + '（男）；' + su.discipliner + '温润如玉、底线分明，对欺瞒与偷盗零容忍。师门罚则以生效罚则清单为准，不使用劳作类惩罚（禁止以洒扫、杂役、耕种等作为惩罚）（健康向，无血腥暴力、无任何亲密越界内容，二人仅为师兄弟情谊）。配角如外门弟子阿巳等可自然登场。';
     var base = '你是单机文字游戏《训戒模拟器2.0》的剧情引擎，扮演训诫者' + su.discipliner + '，并无限推进剧情。' + worldBlock +
         strict + punishBlock + diffBlock +
-        '【主题约束·必须遵守】全部剧情必须始终围绕“训诫/管教”主题展开：剧情围绕' + su.player + '的各类过犯（迟到、夜不归宿、私闯禁地、偷懒懈怠、顶撞师长、损毁公物、作弊隐瞒等）与门规校纪、罚则及训导对话展开。所有惩罚必须严格按【生效罚则清单】执行，不得使用清单外的任何手段。即使翻篇进入新剧情，也必须由新的过犯、训导或训诫后的成长与考验引出，不得偏离到无关冒险、情爱或争斗。' +
-        '【硬性要求】1) 必须紧扣玩家行动（player_action）做针对性回应，禁止答非所问、禁止无视玩家输入自说自话；2) 与 story_recent 中的既有内容措辞、句式不重复，每次换新细节、新角度，确保多样性；3) 文风' + (su.era === "modern" ? "贴近现代校园、细腻真实" : "古风细腻") + '，' + su.discipliner + '台词温和而有分量，可带一点冷幽默；4) effects 的键只能取：favor,trust,violation,privilege,discipline,emotion,obedience,resistance（禁止自创键名），只填确实发生变动的项，单项范围-12~+12，violation/discipline/resistance为坏值，favor/trust/obedience/emotion为好值，privilege为消耗性资源。' +
-        '【过错记忆·必须遵守】payload.past_violations 是若木过往过错的记录（标签:次数）。每次回应必须评估 player_action 是否构成过错：若构成，在输出JSON顶层 violation 字段填1~6字过错标签（如：迟到、顶嘴、夜不归舍、私闯禁地、偷懒、撒谎、损毁公物），标签必须与 past_violations 中同类过错用词一致，便于对账；若同时涉及多项过错，以最主导的一项作标签，不拼长串；不构成则填空字符串""。若该标签已在 past_violations 中出现（次数≥1），即为重复犯错：必须在 narration 或 dialogues 中明确翻旧账（点明这是第N次、提及上次的教训或当时训话的大意），沈砚情绪明显加重（更失望、更严厉或一声更深沉的叹息），effects 中 violation 与 discipline 加大、favor 与 trust 降得更多；翻旧账的严厉程度随沈砚当前性格档位加深。若为初犯则正常按罚则处置；严禁凭空捏造 past_violations 中不存在的旧账，也不许对不构成过错的行为强行记账。' +
-        '【场景轮换·必须遵守】payload.past_arcs 是本局已经历过的剧情梗概列表（含历次重开）。任何新剧情（翻篇后的新开场、新事件）在场景地点、过错类型、事件内容上都必须与 past_arcs 中任意一条明显不同，禁止重复同类桥段（如已发生过"晨省迟到"，就不得再以"迟到"作为新剧情核心；同一地点不宜连续两次作为主场景）；next_arc_hint 与 choices 也要体现这种差异。' +
-        '【剧情推进·两阶段翻篇】每段剧情不设行动次数上限，节奏由你把握。当本段剧情自然收束时，设 advance=true，本次回应【只负责收束旧剧情】：narration 与 dialogues 要把此事的了结、人物当下的状态交代清楚（narration 不超过2段），绝不在本次回应中展开任何新剧情或新事件；transition 字段写一句过渡语（如：又过了几日 / 此番过后若木难得消停了几日 / 一晃便是三日后）；new_day/new_time/new_location 给出翻篇后的日期时辰与地点；next_arc_hint 用一句话概括新剧情的走向（如：若木领了新的差事 / 又犯新错 / 宗门试炼将至）。系统收到 advance=true 后会另行单独请求新剧情开场——旧剧情到本次回应为止彻底结束，新旧剧情互不影响、互不纠缠。若本段剧情尚未收束，advance 保持 false，不提供 transition/new_*/next_arc_hint 字段。' +
+        '【主题约束·必须遵守】全部剧情必须始终围绕“训诫/管教”主题展开：剧情围绕' + su.player + '的各类过犯（' + (su.era === 'modern' ? '迟到、翻墙外出上网、夜不归宿、私闯天台、手机违规、顶撞老师、损毁公物、考试作弊等' : '迟到、夜不归宿、私闯禁地、偷懒懈怠、顶撞师长、损毁公物、作弊隐瞒等') + '）与' + (su.era === 'modern' ? '校规校纪、惩戒清单及训导对话' : '门规校纪、罚则及训导对话') + '展开。所有惩罚必须严格按【生效罚则清单】执行，不得使用清单外的任何手段。即使翻篇进入新剧情，也必须由新的过犯、训导或训诫后的成长与考验引出，不得偏离到无关冒险、情爱或争斗。' +
+        '【硬性要求】1) 必须紧扣玩家行动（player_action）做针对性回应，禁止答非所问、禁止无视玩家输入自说自话；2) 与 story_recent 中的既有内容措辞、句式不重复，每次换新细节、新角度，确保多样性；3) 文风' + (su.era === "modern" ? "贴近现代校园、细腻真实（用现代校园用语与生活细节，严禁任何古风措辞、文言腔或古风意象）" : "古风细腻") + '，' + su.discipliner + '台词温和而有分量，可带一点冷幽默；4) effects 的键只能取：favor,trust,violation,privilege,discipline,emotion,obedience,resistance（禁止自创键名），只填确实发生变动的项，单项范围-12~+12，violation/discipline/resistance为坏值，favor/trust/obedience/emotion为好值，privilege为消耗性资源。' +
+        '【过错记忆·必须遵守】payload.past_violations 是若木过往过错的记录（标签:次数）。每次回应必须评估 player_action 是否构成过错：若构成，在输出JSON顶层 violation 字段填1~6字过错标签（' + (su.era === 'modern' ? '如：迟到、夜不归宿、翻墙外出、玩手机、逃课、顶撞老师、作弊、损毁公物' : '如：迟到、顶嘴、夜不归舍、私闯禁地、偷懒、撒谎、损毁公物') + '），标签必须与 past_violations 中同类过错用词一致，便于对账；若同时涉及多项过错，以最主导的一项作标签，不拼长串；不构成则填空字符串""。若该标签已在 past_violations 中出现（次数≥1），即为重复犯错：必须在 narration 或 dialogues 中明确翻旧账（点明这是第N次、提及上次的教训或当时训话的大意），沈砚情绪明显加重（更失望、更严厉或一声更深沉的叹息），effects 中 violation 与 discipline 加大、favor 与 trust 降得更多；翻旧账的严厉程度随沈砚当前性格档位加深。若为初犯则正常按罚则处置；严禁凭空捏造 past_violations 中不存在的旧账，也不许对不构成过错的行为强行记账。' +
+        '【场景轮换·必须遵守】payload.past_arcs 是本局已经历过的剧情梗概列表（含历次重开）。任何新剧情（翻篇后的新开场、新事件）在场景地点、过错类型、事件内容上都必须与 past_arcs 中任意一条明显不同，禁止重复同类桥段（如已发生过"' + (su.era === 'modern' ? '晨会缺勤' : '晨省迟到') + '"，就不得再以' + (su.era === 'modern' ? '"缺勤"' : '"迟到"') + '作为新剧情核心；同一地点不宜连续两次作为主场景）；next_arc_hint 与 choices 也要体现这种差异。' +
+        '【剧情推进·两阶段翻篇】每段剧情不设行动次数上限，节奏由你把握。当本段剧情自然收束时，设 advance=true，本次回应【只负责收束旧剧情】：narration 与 dialogues 要把此事的了结、人物当下的状态交代清楚（narration 不超过2段），绝不在本次回应中展开任何新剧情或新事件；transition 字段写一句过渡语（' + (su.era === 'modern' ? '如：过了两天 / 这之后' + su.player + '安分了一个星期 / 转眼到了周五' : '如：又过了几日 / 此番过后若木难得消停了几日 / 一晃便是三日后') + '）；new_day/new_time/new_location 给出翻篇后的日期与时刻地点；next_arc_hint 用一句话概括新剧情的走向（' + (su.era === 'modern' ? '如：他被安排协助宿管查寝 / 又犯新错 / 期中考试临近' : '如：若木领了新的差事 / 又犯新错 / 宗门试炼将至') + '）。系统收到 advance=true 后会另行单独请求新剧情开场——旧剧情到本次回应为止彻底结束，新旧剧情互不影响、互不纠缠。若本段剧情尚未收束，advance 保持 false，不提供 transition/new_*/next_arc_hint 字段。' +
         '【输出】只输出一个JSON对象，不要任何解释、前言或代码块标记。格式：' +
         '{"narration":["旁白段落1","旁白段落2"],"dialogues":[{"who":"沈砚","text":"台词"}],"effects":{"trust":2},"flags_add":[],"choices":["贴合当前剧情的选项1","选项2","选项3"],"violation":"","advance":false,"transition":"","new_day":0,"new_time":"","new_location":"","next_arc_hint":""}。' +
-        'narration 1-3段，每段40~90字；dialogues 0-3句，who 可用：沈砚/若木/阿巳/旁白；flags_add 仅限以下：gardenPressed,fullHonest,gardenAdmitted,busted,askSeed,reportPending,reported,learnedHerb,knowWatch,promiseHint,drewPortrait,askedLaw,promiseFirefly,backstory,patrol,confined,snack。' +
-        'choices：本轮回应结束后呈现给玩家的3~5个行动选项，每项8~20字，为玩家视角的行动描述（动词开头，如"主动认错领罚"/"辩解晨雾误事"/"偷瞄他的罚册"），须紧扣当前剧情、互不相同且倾向多样（顺从/辩解/试探/求助/搅事等），禁止与 past_arcs 已有剧情重复。';
+        'narration 1-3段，每段40~90字；dialogues 0-3句，who 可用：' + (su.era === 'modern' ? '沈砚/若木/小何/宿管/同学/旁白' : '沈砚/若木/阿巳/旁白') + '；flags_add 仅限以下：gardenPressed,fullHonest,gardenAdmitted,busted,askSeed,reportPending,reported,learnedHerb,knowWatch,promiseHint,drewPortrait,askedLaw,promiseFirefly,backstory,patrol,confined,snack。' +
+        'choices：本轮回应结束后呈现给玩家的3~5个行动选项，每项8~20字，为玩家视角的行动描述（动词开头，如"主动认错领罚"/' + (su.era === 'modern' ? '"辩解闹钟没响"/"偷瞄他的记录册"' : '"辩解晨雾误事"/"偷瞄他的罚册"') + '），须紧扣当前剧情、互不相同且倾向多样（顺从/辩解/试探/求助/搅事等），禁止与 past_arcs 已有剧情重复。';
     if (openArc) {
         base += '【当前任务·开启新剧情】玩家消息中 task=open_new_arc：旧剧情已在过渡句之前彻底收束完毕，你只需输出新剧情的开场——依 arc_hint 与时间地点展开一段全新事件（narration 1-2段直接进入新剧情，dialogues 0-2句引入人物），advance 必须为 false，不提供 transition/new_*/next_arc_hint 字段；严禁复述或回顾旧剧情，新剧情从你的这段开场起独立展开。依新事件输出3~5个互不相同的choices行动选项，新剧情事件必须与 past_arcs 中任何一条明显不同。本次仅为开场铺垫，violation 字段必须为空字符串。';
     }
     else if (opts && opts.newOpening) {
-        base += '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。若木在一恰当的日子因一项过错或境况与沈砚相遇并被训导：场景地点、时辰、过错类型都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨省迟到训诫、戒尺宣判受罚、藏书阁罚抄律令、夜谈沈砚守灯旧事、第四日结算抉择等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入沈砚的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。';
+        base += su.era === 'modern'
+            ? '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。' + su.player + '在启明中学因一项过错或境况与' + su.discipliner + '相遇并被训导：场景地点（教室/走廊/办公室/训导处/宿舍/操场/天台/校门口）、时刻（早读/课间/午休/晚自习/查寝/周末）、过错类型（逃课、翻墙外出上网、夜不归宿、私闯天台、手机违规、考试作弊、顶撞老师、损毁公物等）都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨会点名缺勤训话、违纪通知单宣判、惩戒清单执行、写检讨书、放学后谈话、周五结算等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入' + su.discipliner + '的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数，new_time 用现代时刻如"07:40"或"晚自习"）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。'
+            : '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。若木在一恰当的日子因一项过错或境况与沈砚相遇并被训导：场景地点、时辰、过错类型都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨省迟到训诫、戒尺宣判受罚、藏书阁罚抄律令、夜谈沈砚守灯旧事、第四日结算抉择等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入沈砚的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。';
     }
     base = base.split('沈砚').join(su.discipliner).split('若木').join(su.player);
     return base;
@@ -1899,13 +2375,15 @@ function buildAIUserMsg(userAction, opts) {
     var recent = Array.prototype.slice.call(story.children, -8).map(function (e) {
         return e.innerText.replace(/\s+/g, ' ');
     }).join(' | ').slice(-1400);
-    var names = { s1: '晨省问询', s1b: '宣判', s2: '戒尺受罚', s3: '藏书阁罚抄', s4: '夜谈', s5: '第四日结算' };
+    var su2 = S.setup || defaultSetup();
+    var names = su2.era === 'modern' ? { s1: '晨会点名缺勤', s1b: '违纪通知单', s2: '惩戒清单执行', s3: '写检讨', s4: '放学后谈话', s5: '周五结算' } : { s1: '晨省问询', s1b: '宣判', s2: '戒尺受罚', s3: '藏书阁罚抄', s4: '夜谈', s5: '第四日结算' };
     var flags = Object.keys(S.flags).filter(function (k) { return S.flags[k]; });
     var payload = {
         scene_id: S.scene,
         scene_name: names[S.scene] || S.scene,
+        era: su2.era,
         free_arc: S.aiArc ? '是：已进入AI自由剧情阶段，不必遵循原场景框架，按【剧情推进】规则无限续写' : '否：仍处于原场景，剧情自然收束后可翻篇',
-        time: '第' + S.day + '日 ' + S.time,
+        time: (su2.era === 'modern' ? '第' + S.day + '天 ' : '第' + S.day + '日 ') + S.time,
         location: S.loc,
         stats: { favor: S.favor, trust: S.trust, violation: S.violation, privilege: S.privilege, discipline: S.discipline, emotion: S.emotion, obedience: S.obedience, resistance: S.resistance },
         flags: flags,
@@ -2026,7 +2504,7 @@ function applyAIResult(res) {
         var times = recordViolation(res.violation_tag);
         if (times >= 2) {
             eff({ discipline: 4, violation: 3, trust: -3 });
-            toast('⚠ 旧账：这已是若木第' + times + '次犯“' + res.violation_tag + '”');
+            toast('⚠ 旧账：这已是' + pName() + '第' + times + '次犯“' + res.violation_tag + '”');
         }
     }
     /* AI接管选项：本轮回应结束后，按钮区由AI生成的行动选项接管 */
@@ -2039,7 +2517,7 @@ function aiAct(userAction) {
     Array.prototype.forEach.call(actionArea.children, function (b) { b.disabled = true; });
     freeInput.disabled = true;
     document.getElementById('freeSubmit').disabled = true;
-    var think = el('narration', '沈砚正在斟酌言辞……');
+    var think = el('narration', dName() + '正在斟酌言辞……');
     callAI(userAction).then(function (res) {
         think.remove();
         applyAIResult(res);
@@ -2083,7 +2561,7 @@ function openNewArc(prevRes) {
 function finishAIAct() {
     aiBusy = false;
     S.actions++;
-    var sc = SCENES[S.scene];
+    var sc = getScenes()[S.scene];
     if (S.aiArc) {
         /* AI自由剧情模式：不设行动次数限制，剧情收束与翻篇由AI两阶段完成；按钮区由AI生成的选项接管 */
         renderChoices(lastAIChoices.length ? aiChoiceButtons(lastAIChoices) : aiModeChoices());
@@ -2211,9 +2689,9 @@ function submitFree() {
     if (!val) return;
     if (val === '中止' || val === '安全词') {
         userMsg(val);
-        n('【安全词“中止”已触发】当前场景安全跳过，时辰直接推进。');
+        n('【安全词“中止”已触发】当前场景安全跳过，' + ((S.setup && S.setup.era === 'modern') ? '时间' : '时辰') + '直接推进。');
         clearAutoAdvance();
-        var nx = SCENES[S.scene].next;
+        var nx = getScenes()[S.scene].next;
         if (nx) startScene(nx);
         return;
     }
@@ -2346,7 +2824,7 @@ function applySetupToUI() {
         var raw = localStorage.getItem(KEY);
         if (raw) {
             var o = JSON.parse(raw);
-            if (o && o.S && o.S.scene && SCENES[o.S.scene]) {
+            if (o && o.S && o.S.scene && getScenes()[o.S.scene]) {
                 S = o.S;
                 if (!S.memory || !S.memory.viol) S.memory = { viol: {}, loc: {} };
                 if (!Array.isArray(S.aiChoices)) S.aiChoices = [];
@@ -2358,7 +2836,7 @@ function applySetupToUI() {
     } catch (e) {}
     if (restored) {
         document.getElementById('restoreBar').style.display = 'flex';
-        var sc = SCENES[S.scene];
+        var sc = getScenes()[S.scene];
         renderStatus();
         applySetupToUI();
         if (S.ended) {
