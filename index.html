@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>训戒男模拟器 2.0 · 仙侠篇 · 公开版（自接API）</title>
+    <title>训诫模拟器</title>
     <style>
         * {
             box-sizing: border-box;
@@ -627,8 +627,7 @@
 <div class="game-container">
     <!-- 头部 -->
     <div class="header-title">
-        <h1>训戒男模拟器 2.0</h1>
-        <span class="version">仙侠 · 戒律堂 · 若木篇 · 公开版 · 自接API</span>
+        <h1>训诫模拟器</h1>
         <div class="header-actions">
             <button id="btnAI" title="AI 引擎设置">🤖 AI</button>
             <button id="btnRestart" title="清空存档并重新开始">↺ 重开</button>
@@ -828,7 +827,7 @@
 <script>
 "use strict";
 /* =====================================================
-   训戒男模拟器 2.0 · 仙侠篇 · 单机引擎
+   训诫模拟器 · 单机引擎
    - 所有选择/自由输入 立即产生剧情回应与数值变化
    - 自由输入采用意图识别（每场景专属 + 全局通用）
    - 自动存档（localStorage），支持恢复与重开
@@ -3433,7 +3432,7 @@ function aiModeChoices() {
     return [
         { t: '主动认错，态度诚恳', run: function () { fallback(); } },
         { t: '撒娇求饶，耍赖打岔', run: function () { fallback(); } },
-        { t: '找话题与师兄闲聊', run: function () { fallback(); } },
+        { t: '找话题与' + ((S.setup && S.setup.era === 'modern') ? '老师' : '师兄') + '闲聊', run: function () { fallback(); } },
         { t: '沉默观察他的反应', run: function () { fallback(); } },
         { t: '主动请缨领一份差事', run: function () { fallback(); } }
     ];
@@ -3507,7 +3506,7 @@ function buildAISystemPrompt(opts) {
     else if (opts && opts.newOpening) {
         base += su.era === 'modern'
             ? '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。' + su.player + '在启明中学因一项过错或境况与' + su.discipliner + '相遇并被训导：场景地点（教室/走廊/办公室/训导处/宿舍/操场/天台/校门口）、时刻（早读/课间/午休/晚自习/查寝/周末）、过错类型（逃课、翻墙外出上网、夜不归宿、私闯天台、手机违规、考试作弊、顶撞老师、损毁公物等）都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨会点名缺勤训话、违纪通知单宣判、惩戒清单执行、写检讨书、放学后谈话、周五结算、月考作弊被抓训导、课堂玩手机顶撞摔门训导等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入' + su.discipliner + '的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数，new_time 用现代时刻如"07:40"或"晚自习"）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。'
-            : '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。若木在一恰当的日子因一项过错或境况与沈砚相遇并被训导：场景地点、时辰、过错类型都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨省迟到训诫、戒尺宣判受罚、藏书阁罚抄律令、夜谈沈砚守灯旧事、第四日结算抉择、演武场私练瞒伤训诫、膳堂偷饮打翻灯烛训诫等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入沈砚的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。';
+            : '【当前任务·全新开局】玩家消息中 task=new_opening：本局刚刚开始，请生成一个全新的开局剧情。若木在一恰当的日子因一项过错或境况与沈砚相遇并被训导：场景地点、时辰、过错类型都必须与 past_arcs 中任何一条明显不同（过去至少已经历过：晨省迟到训诫、戒尺宣判受罚、藏书阁罚抄律令、夜谈沈砚守灯旧事、第四日结算抉择、演武场私练瞒伤训诫、膳堂偷饮打翻灯烛训诫等）。narration 1-2段直接进入剧情开场，dialogues 0-2句引入沈砚的训话或对峙；advance 必须为 false，不提供 transition/next_arc_hint；new_day/new_time/new_location 填开局时间地点（new_day 取1~10的整数，new_time 一律用传统时辰如"辰时""午时""戌时"，严禁"周一""07:40"等现代日期时刻格式）；violation 填空字符串；choices 提供3~5个针对该局面的行动选项。';
     }
     base = base.split('沈砚').join(su.discipliner).split('若木').join(su.player);
     return base;
@@ -3843,10 +3842,9 @@ function submitFree() {
 }
 document.getElementById('freeSubmit').onclick = submitFree;
 freeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') submitFree(); });
-/* 重开：AI启用时清除存档并生成全新开局场景（场景历史跨重开记录，保证不与经历过的重合） */
+/* 重开：清除存档回到起始页（开局方式由 AI 面板当前开关决定，场景历史跨重开记录保证不重合） */
 function doRestart() {
     localStorage.removeItem(KEY);
-    if (aiUsable()) { try { localStorage.setItem('xunjie2_aiopen', '1'); } catch (e) {} }
     location.reload();
 }
 document.getElementById('btnRestart').onclick = doRestart;
@@ -3949,6 +3947,7 @@ function pickChainStart() {
 function setupStart(aiOpenFlag) {
     S.setup = readSetupUI();
     if (!S.setup.punish.length) toast('未勾选任何罚则：后续剧情将只以训话与记录为主');
+    if (aiOpenFlag && aiUsable()) toast('AI 已启用：本局开局与剧情将由 AI 生成全新场景');
     try { localStorage.setItem(SU_LAST_KEY, JSON.stringify(S.setup)); } catch (e) {}
     document.getElementById('setupMask').style.display = 'none';
     applySetupToUI();
@@ -3983,8 +3982,6 @@ function applySetupToUI() {
         var cb = lb.querySelector('input[type="checkbox"]');
         if (cb) cb.addEventListener('change', function () { lb.classList.toggle('on', cb.checked); });
     });
-    var aiOpen = false;
-    try { if (localStorage.getItem('xunjie2_aiopen') === '1') { localStorage.removeItem('xunjie2_aiopen'); aiOpen = true; } } catch (e) {}
     var restored = false;
     try {
         var raw = localStorage.getItem(KEY);
@@ -4023,7 +4020,7 @@ function applySetupToUI() {
         /* 起始设置页：填写主控/训诫者名字、时代、难度与罚则后开始 */
         fillSetupUI();
         document.getElementById('setupMask').style.display = 'flex';
-        document.getElementById('suStart').onclick = function () { setupStart(aiOpen); };
+        document.getElementById('suStart').onclick = function () { setupStart(aiUsable()); };
     }
 })();
 </script>
